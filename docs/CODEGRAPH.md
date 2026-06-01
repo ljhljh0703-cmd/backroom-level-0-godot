@@ -28,6 +28,8 @@ flowchart TD
     event --> caption["_flash_caption()"]
     jump --> ending["_show_ending()"]
 
+    requirements["docs/DEV_REQUIREMENTS.md"] --> roomData
+    requirements --> validation["planned route validation"]
     generator["tools/generate_assets.py"] --> images["assets/images/*.png"]
     generator --> audio["assets/audio/*.wav"]
     images --> assets
@@ -39,6 +41,7 @@ flowchart TD
 | 파일 | 역할 | 수정할 때 |
 | --- | --- | --- |
 | `src/Game.gd` | 게임 루프, 방 그래프, 핫스팟, 캡션, 크리처 타이밍, UI 레이어, 오디오 재생. | 진행 흐름, 상호작용, 문구, 크리처, 엔딩 수정. |
+| `docs/DEV_REQUIREMENTS.md` | GDD 승인 후 route graph, hotspot, state flag, event/ending 조건을 구현 기준으로 고정. | 구현 전에 방/상태/엔딩 조건을 바꿀 때. |
 | `tools/generate_assets.py` | 블록아웃 이미지, STOP 표지 전경, 오버레이, 임시 오디오 생성. | 블록아웃 배치 변경 또는 최종 배경 일괄 생성. |
 | `assets/images/*.png` | 생성/교체되는 방 이미지와 오버레이. | 레이아웃 승인 뒤 최종 비주얼 패스 적용. |
 | `assets/audio/*.wav` | 임시 앰비언스와 효과음. | 사운드 패스에서 교체 또는 튜닝. |
@@ -54,6 +57,7 @@ flowchart TD
 | --- | --- | --- |
 | 방 추가/삭제 | `src/Game.gd`의 `ROOM_DATA` | `tools/generate_assets.py`의 `scene_*()`와 출력 키 |
 | 클릭 영역 변경 | `ROOM_DATA[room]["hotspots"]` | 해당 배경의 시각 도형 |
+| GDD v2 route 변경 | `docs/DEV_REQUIREMENTS.md` | `src/Game.gd`의 `ROOM_DATA`, route validation |
 | 방 캡션 변경 | `ROOM_DATA[room]["caption"]` | 동적 캡션은 `_room_caption()` |
 | 조사 문구 변경 | `_handle_event()`, `_repeat_event_line()` | `ROOM_DATA`의 `event` id |
 | 방 이동 조건 변경 | `_go_to_room()` | `ROOM_DATA`의 hotspot target |
@@ -63,7 +67,7 @@ flowchart TD
 | 전체 시각 스타일 변경 | `tools/generate_assets.py`의 상수/그리기 함수 | `assets/images/*.png` 재생성 |
 | 최종 이미지 교체 | `assets/images/*.png` 파일 교체 | 파일명을 유지하면 `ROOM_DATA` 수정 불필요 |
 
-## Room Graph
+## Current Room Graph
 
 ```mermaid
 flowchart LR
@@ -83,6 +87,30 @@ flowchart LR
 
 현재 확인할 점: `hallway`는 `junction`에서만 접근 가능하고, `junction`은 현재 `start -> left/right -> start` 루프에서 접근되지 않는다. 최종 아트를 넣기 전에 `hallway`, `junction`, `sign`이 실제 플레이 루트에 들어갈지 먼저 확정해야 한다.
 
+## Target Room Graph
+
+GDD v2 승인 후 구현 목표 그래프다. 상세 조건은 `docs/DEV_REQUIREMENTS.md`가 기준이다.
+
+```mermaid
+flowchart TD
+    fork_stop["fork_stop\nSTOP 갈림길"] --> stop_back_space["stop_back_space\n어두운/붉은 STOP 뒤 공간"]
+    stop_back_space --> fork_stop
+    stop_back_space --> true_exit_room["true_exit_room\nA 엔딩"]
+    stop_back_space --> false_exit_room["false_exit_room\nB 엔딩"]
+
+    fork_stop --> left_blood_path["left_blood_path\n붉은 흔적"]
+    left_blood_path --> left_switch_room["left_switch_room\n전등 버튼"]
+    left_switch_room --> left_blood_path
+    left_blood_path --> fork_stop
+
+    fork_stop --> right_panel_path["right_panel_path\n인간형 판넬"]
+    right_panel_path --> right_dead_end["right_dead_end\n막다른 길"]
+    right_dead_end --> right_panel_path
+    right_panel_path --> fork_stop
+
+    stop_back_space -. "연속 재진입" .-> ending_c["C 엔딩"]
+```
+
 ## State Graph
 
 | 상태 | 변수 | 의미 |
@@ -95,6 +123,19 @@ flowchart LR
 | STOP 등장 가드 | `creature_peek_seen`, `creature_peek_active` | STOP 표지 뒤 첫 등장 1회 제한. |
 | 조사 반복 | `clicked_events` | 같은 조사 이벤트 반복 시 다른 문구 출력. |
 | 문 경고 | `door_warning_seen` | 첫 문 클릭은 경고, 두 번째는 점프스케어. |
+
+v2에서 추가/교체할 상태:
+
+| 상태 | 변수 | 의미 |
+| --- | --- | --- |
+| STOP 뒤 연속 재진입 | `stop_back_reentry_armed` | `fork_stop -> stop_back_space -> fork_stop -> stop_back_space` C 엔딩 판정. |
+| 좌측 버튼 | `light_switch_pressed` | STOP 뒤 공간을 붉은 상태로 바꿈. |
+| 붉은 STOP 뒤 확인 | `stop_back_red_seen` | A/B 출구 판정에 사용. |
+| 붉은 흔적 단서 | `blood_trace_clicked` | A 엔딩 필수 단서. |
+| 인간형 판넬 단서 | `panel_clue_clicked` | A 엔딩 필수 단서. |
+| 우측 막다른 길 방문 | `right_dead_end_seen` | 복귀 판넬 소리와 크리처 1초 등장 조건. |
+| 판넬 소리 1회 제한 | `panel_sound_played` | 우측 복귀 사운드 중복 방지. |
+| 엔딩 분기 | `ending_id` | A/B/C 결과 표시. |
 
 ## Asset Pipeline
 

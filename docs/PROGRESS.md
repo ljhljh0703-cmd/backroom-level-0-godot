@@ -8,6 +8,8 @@
 
 현재 시각 단계: 블록아웃 placeholder.
 
+현재 기획 단계: GDD v2 승인 완료, 개발 요구사항 검토 단계.
+
 검토 대상:
 
 - 방 순서
@@ -25,7 +27,8 @@
 - 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=183c17f`
 - Godot: `4.6`
 - 배포 형식: GitHub Pages Web export
-- 현재 단계: flow/blockout review
+- 현재 단계: development requirements review
+- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` 작성
 
 ## 결정 기록
 
@@ -47,6 +50,7 @@
 | 2026-06-01 | 좌측 방에는 전등 버튼을 둔다. | 버튼 작동 후 STOP 뒤 공간이 붉은 빛으로 밝아지는 상태 변화를 만들기 위해. |
 | 2026-06-01 | A 진짜 출구와 B 가짜 출구는 서로 다른 방으로 분리한다. | 단서 부족 상태에서 가짜 출구로 몰리는 경험을 디벨롭하기 위해. |
 | 2026-06-01 | 우측 인간 모양 판넬은 클릭 가능한 단서로 둔다. | 우측 막다른 루트에도 의미 있는 상호작용을 주기 위해. |
+| 2026-06-01 | GDD v2를 승인했다. | 개발 요구사항 문서화와 구현 준비 단계로 넘어가기 위해. |
 
 ## 고도화 방향
 
@@ -138,21 +142,23 @@
 - 현재 배경은 개발용 블록아웃 label을 좌상단에 포함한다.
 - 현재 배포 빌드는 GDD v2의 신규 8방 구조가 아직 구현되지 않은 상태다.
 - `hallway`, `junction`, `sign`, `door`, `other`는 존재하지만 현재 첫 루프에서 전체 시퀀스가 자연스럽게 열리지는 않는다. 다음 구현 전에 루트 확정이 필요하다.
+- `docs/DEV_REQUIREMENTS.md`는 GDD v2를 실제 구현 단위로 바꾼 기준 문서다.
 
 ## 다음 리뷰 질문
 
-GDD v2 승인 전 확인할 질문:
+개발 요구사항 검토 질문:
 
-1. GDD v2를 승인할지, 수정할 항목이 있는지.
-2. 승인 시 개발 요구사항 단계로 넘어간다.
+1. `DEV_REQUIREMENTS.md`의 A 엔딩 필수 단서 조건이 맞는지.
+2. B 엔딩을 "붉은 STOP 뒤 공간에서 출구를 눌렀지만 단서 부족"으로 처리하는 방향이 맞는지.
+3. 이 기준으로 v2 블록아웃 구현에 들어가도 되는지.
 
 ## 다음 추천 작업 패킷
 
 가장 작은 유효 작업 단위:
 
-1. GDD v2 승인.
-2. start에서 ending까지의 playable route graph 확정.
-3. 그 route가 실제 `ROOM_DATA`에서 도달 가능하도록 수정.
+1. `DEV_REQUIREMENTS.md` 승인.
+2. v2 room id로 `ROOM_DATA` 교체.
+3. state flag와 A/B/C 엔딩 분기 구현.
 4. hotspot debug overlay 추가.
 5. route validation script 추가.
 6. blockout build 재배포 후 리뷰.
@@ -165,6 +171,7 @@ GDD v2 승인 전 확인할 질문:
 | --- | --- |
 | `draft` | GDD 초안 추가. |
 | `draft-v2` | STOP 뒤 공간 상태, 좌측 전등 버튼, 분리된 A/B 출구, 우측 판넬 단서 반영. |
+| `dev-req-v2` | GDD v2 승인 후 개발 요구사항 문서와 target CodeGraph 갱신. |
 | `183c17f` | 상세 배경을 버리고 구조 검토용 블록아웃으로 전환. |
 | `acedfef` | reference-style 배경 시도. 이후 블록아웃 결정으로 대체됨. |
 | `866c9f9` | STOP 표지 갈림길 피드백과 첫 크리처 등장 지연 반영. |
