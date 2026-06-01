@@ -6,7 +6,8 @@ const ROOM_DATA := {
 		"image": "res://assets/images/bg_start.png",
 		"caption": "The lights hum too close.",
 		"hotspots": [
-			{"rect": Rect2(0.700, 0.240, 0.220, 0.520), "target": "hallway", "prompt": "DARK HALL"}
+			{"rect": Rect2(0.700, 0.240, 0.220, 0.520), "target": "hallway", "prompt": "DARK HALL"},
+			{"rect": Rect2(0.105, 0.350, 0.145, 0.160), "event": "frame", "prompt": "FRAME"}
 		]
 	},
 	"hallway": {
@@ -22,7 +23,8 @@ const ROOM_DATA := {
 		"caption": "Footsteps answer one beat late.",
 		"hotspots": [
 			{"rect": Rect2(0.080, 0.245, 0.240, 0.470), "target": "sign", "prompt": "LEFT ROOM"},
-			{"rect": Rect2(0.700, 0.265, 0.230, 0.450), "target": "hallway", "prompt": "RIGHT HALL"}
+			{"rect": Rect2(0.700, 0.265, 0.230, 0.450), "target": "hallway", "prompt": "RIGHT HALL"},
+			{"rect": Rect2(0.405, 0.360, 0.180, 0.180), "event": "vent", "prompt": "VENT"}
 		]
 	},
 	"sign": {
@@ -30,7 +32,8 @@ const ROOM_DATA := {
 		"caption": "That sign was not here before.",
 		"hotspots": [
 			{"rect": Rect2(0.430, 0.210, 0.280, 0.180), "target": "door", "prompt": "EXIT SIGN"},
-			{"rect": Rect2(0.030, 0.280, 0.220, 0.480), "target": "junction", "prompt": "GO BACK"}
+			{"rect": Rect2(0.030, 0.280, 0.220, 0.480), "target": "junction", "prompt": "GO BACK"},
+			{"rect": Rect2(0.365, 0.485, 0.150, 0.120), "event": "no_map", "prompt": "NO MAP"}
 		]
 	},
 	"door": {
@@ -55,12 +58,19 @@ var shake_power := 0.0
 var hover_prompt := ""
 var elapsed := 0.0
 var miss_clicks := 0
+var move_count := 0
+var clicked_events := {}
+var input_cooldown := 0.0
+var door_warning_seen := false
 
 var world: Control
 var background: TextureRect
 var creature: TextureRect
 var noise: TextureRect
 var vignette: TextureRect
+var threat_tint: ColorRect
+var flash_rect: ColorRect
+var click_feedback: ColorRect
 var black_fade: ColorRect
 var caption_label: Label
 var prompt_label: Label
@@ -127,6 +137,27 @@ func _build_nodes() -> void:
 	vignette.modulate = Color(1.0, 1.0, 1.0, 0.78)
 	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	world.add_child(vignette)
+
+	threat_tint = ColorRect.new()
+	threat_tint.name = "ThreatTint"
+	threat_tint.set_anchors_preset(Control.PRESET_FULL_RECT)
+	threat_tint.color = Color(0.30, 0.08, 0.03, 0.0)
+	threat_tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(threat_tint)
+
+	flash_rect = ColorRect.new()
+	flash_rect.name = "Flash"
+	flash_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	flash_rect.color = Color(1, 0.94, 0.62, 0.0)
+	flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(flash_rect)
+
+	click_feedback = ColorRect.new()
+	click_feedback.name = "ClickFeedback"
+	click_feedback.size = Vector2(18, 18)
+	click_feedback.color = Color(0.95, 0.88, 0.52, 0.0)
+	click_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(click_feedback)
 
 	black_fade = ColorRect.new()
 	black_fade.name = "BlackFade"
@@ -256,12 +287,18 @@ func _show_title() -> void:
 	game_state = "title"
 	room_id = ROOM_START
 	creature_stage = 0
+	move_count = 0
 	miss_clicks = 0
+	clicked_events.clear()
+	door_warning_seen = false
+	input_cooldown = 0.0
 	title_layer.visible = true
 	restart_label.visible = false
 	caption_label.text = ""
 	prompt_label.text = ""
 	creature.visible = false
+	threat_tint.color.a = 0.0
+	flash_rect.color.a = 0.0
 	_render_room()
 	_fade_from_black(0.5)
 
@@ -272,7 +309,9 @@ func _start_game() -> void:
 	restart_label.visible = false
 	caption_label.text = ROOM_DATA[room_id]["caption"]
 	creature_stage = 0
+	move_count = 0
 	miss_clicks = 0
+	input_cooldown = 0.0
 	if not hum_player.playing:
 		hum_player.play()
 	_play_sound(click_sound)
@@ -290,9 +329,11 @@ func _input(event: InputEvent) -> void:
 
 func _process(delta: float) -> void:
 	elapsed += delta
+	input_cooldown = maxf(0.0, input_cooldown - delta)
 	noise.modulate.a = 0.10 + sin(elapsed * 21.0) * 0.018 + randf() * 0.025
 	if game_state == "play":
 		hum_player.volume_db = -25.0 + min(creature_stage, 4) * 1.2
+		threat_tint.color.a = lerpf(threat_tint.color.a, creature_stage * 0.035, delta * 2.0)
 	if shake_time > 0.0:
 		shake_time = maxf(0.0, shake_time - delta)
 		var amount := shake_power * (shake_time / maxf(shake_time + delta, 0.001))
@@ -302,6 +343,10 @@ func _process(delta: float) -> void:
 
 
 func _handle_click(screen_pos: Vector2) -> void:
+	if input_cooldown > 0.0:
+		return
+	input_cooldown = 0.10
+	_show_click_feedback(screen_pos)
 	if game_state == "title":
 		_start_game()
 		return
@@ -317,7 +362,9 @@ func _handle_click(screen_pos: Vector2) -> void:
 		_miss_click()
 		return
 
-	if hotspot["target"] == "jump":
+	if hotspot.has("event"):
+		_handle_event(hotspot["event"])
+	elif hotspot["target"] == "jump":
 		_trigger_jump()
 	else:
 		_go_to_room(hotspot["target"])
@@ -326,18 +373,18 @@ func _handle_click(screen_pos: Vector2) -> void:
 func _miss_click() -> void:
 	miss_clicks += 1
 	if miss_clicks % 3 == 0 and creature_stage < 4:
-		creature_stage += 1
+		_advance_creature()
 		_flash_caption("Something steps onto the carpet behind you.")
 		_play_sound(thump_sound)
 		_shake(3.0, 0.18)
-		_update_creature()
 	else:
 		_flash_caption("The wallpaper is damp and warm.")
 
 
 func _go_to_room(target: String) -> void:
+	move_count += 1
 	room_id = target
-	creature_stage = mini(creature_stage + 1, 4)
+	_advance_creature()
 	_render_room()
 	_play_sound(thump_sound)
 	_shake(1.5 + creature_stage * 0.5, 0.12)
@@ -347,9 +394,22 @@ func _go_to_room(target: String) -> void:
 func _render_room() -> void:
 	var room: Dictionary = ROOM_DATA[room_id]
 	background.texture = load(room["image"])
-	caption_label.text = room["caption"] if game_state == "play" or game_state == "ending" else ""
+	if game_state == "play":
+		caption_label.text = _room_caption(room)
+	elif game_state == "ending":
+		caption_label.text = room["caption"]
+	else:
+		caption_label.text = ""
 	prompt_label.text = ""
 	_update_creature()
+
+
+func _room_caption(room: Dictionary) -> String:
+	if creature_stage >= 4 and room_id != "door":
+		return "It knows this room now."
+	if move_count >= 5 and room_id == "hallway":
+		return "This hall is repeating you, not itself."
+	return room["caption"]
 
 
 func _update_creature() -> void:
@@ -378,6 +438,14 @@ func _update_creature() -> void:
 
 
 func _trigger_jump() -> void:
+	if not door_warning_seen:
+		door_warning_seen = true
+		_advance_creature()
+		_flash_caption("The handle turns before you touch it.")
+		_play_sound(thump_sound)
+		_shake(7.0, 0.24)
+		_flash_screen(Color(1.0, 0.92, 0.58, 0.28), 0.16)
+		return
 	game_state = "jump"
 	creature_stage = 5
 	creature.visible = true
@@ -409,6 +477,46 @@ func _show_ending() -> void:
 	caption_label.text = "The door was not an exit."
 	prompt_label.text = "Another yellow room. Click to restart."
 	_fade_from_black(0.7)
+
+
+func _handle_event(event_name: String) -> void:
+	if clicked_events.has(event_name):
+		_flash_caption(_repeat_event_line(event_name))
+		return
+	clicked_events[event_name] = true
+	match event_name:
+		"frame":
+			_flash_caption("The frame shows this same room, empty.")
+			_flash_screen(Color(1.0, 0.92, 0.58, 0.18), 0.12)
+		"vent":
+			_advance_creature()
+			_flash_caption("Air moves through the vent like breathing.")
+			_play_sound(thump_sound)
+			_shake(4.5, 0.18)
+		"no_map":
+			_advance_creature()
+			_flash_caption("The map is blank except for one black square.")
+			_play_sound(thump_sound)
+			_shake(3.0, 0.16)
+
+
+func _repeat_event_line(event_name: String) -> String:
+	match event_name:
+		"frame":
+			return "The picture is still empty."
+		"vent":
+			return "The vent has gone quiet."
+		"no_map":
+			return "The square is exactly where you are."
+	return "Nothing changes."
+
+
+func _advance_creature(amount: int = 1) -> void:
+	var previous_stage := creature_stage
+	creature_stage = mini(creature_stage + amount, 4)
+	if creature_stage > previous_stage:
+		_update_creature()
+		_flash_screen(Color(0.72, 0.56, 0.28, 0.12 + creature_stage * 0.035), 0.13)
 
 
 func _hotspot_at(screen_pos: Vector2) -> Dictionary:
@@ -452,6 +560,22 @@ func _fade_from_black(duration: float) -> void:
 	black_fade.color.a = 1.0
 	var tween := create_tween()
 	tween.tween_property(black_fade, "color:a", 0.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _flash_screen(color: Color, duration: float) -> void:
+	flash_rect.color = color
+	var tween := create_tween()
+	tween.tween_property(flash_rect, "color:a", 0.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _show_click_feedback(screen_pos: Vector2) -> void:
+	click_feedback.position = screen_pos - click_feedback.size * 0.5
+	click_feedback.scale = Vector2.ONE
+	click_feedback.color.a = 0.55
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(click_feedback, "color:a", 0.0, 0.22)
+	tween.tween_property(click_feedback, "scale", Vector2(1.8, 1.8), 0.22).from(Vector2.ONE)
 
 
 func _shake(power: float, duration: float) -> void:

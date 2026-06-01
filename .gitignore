@@ -1,7 +1,7 @@
 .DS_Store
 .godot/
-builds/
+builds/*
+!builds/.gdignore
 assets/source/
 *.log
 *.pid
-
