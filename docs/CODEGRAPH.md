@@ -1,6 +1,6 @@
 # CodeGraph
 
-This document maps the current prototype so future edits can target the right file first.
+이 문서는 현재 프로토타입의 코드/데이터 연결 구조를 빠르게 파악하기 위한 지도다.
 
 ## Runtime Graph
 
@@ -34,34 +34,34 @@ flowchart TD
     audio --> assets
 ```
 
-## File Responsibilities
+## 파일 역할
 
-| File | Responsibility | Edit When |
+| 파일 | 역할 | 수정할 때 |
 | --- | --- | --- |
-| `src/Game.gd` | Main game loop, room graph, hotspots, captions, creature timing, UI layers, audio playback. | Change flow, interactions, event text, creature behavior, ending. |
-| `tools/generate_assets.py` | Generates blockout images, foreground STOP sign, overlays, placeholder audio. | Change visual placeholders or later batch-generate final room images. |
-| `assets/images/*.png` | Generated or imported room images and overlays. | Replace with final visual pass after layout approval. |
-| `assets/audio/*.wav` | Generated ambience and SFX placeholders. | Replace or tune audio pass. |
-| `scenes/main.tscn` | Minimal scene root with `Game.gd` attached. | Only change if splitting UI into scene nodes. |
-| `project.godot` | Godot app settings and web/export-relevant display config. | Change resolution, stretch, renderer, app metadata. |
-| `export_presets.cfg` | Web export preset. | Change release/export target settings. |
+| `src/Game.gd` | 게임 루프, 방 그래프, 핫스팟, 캡션, 크리처 타이밍, UI 레이어, 오디오 재생. | 진행 흐름, 상호작용, 문구, 크리처, 엔딩 수정. |
+| `tools/generate_assets.py` | 블록아웃 이미지, STOP 표지 전경, 오버레이, 임시 오디오 생성. | 블록아웃 배치 변경 또는 최종 배경 일괄 생성. |
+| `assets/images/*.png` | 생성/교체되는 방 이미지와 오버레이. | 레이아웃 승인 뒤 최종 비주얼 패스 적용. |
+| `assets/audio/*.wav` | 임시 앰비언스와 효과음. | 사운드 패스에서 교체 또는 튜닝. |
+| `scenes/main.tscn` | `Game.gd`가 붙은 최소 루트 씬. | UI를 씬 노드로 분리할 때만 수정. |
+| `project.godot` | 앱 설정, 해상도, 스트레치, 렌더러, 아이콘. | 프로젝트 설정 변경. |
+| `export_presets.cfg` | Web export 프리셋. | 배포/export 설정 변경. |
 
 ## Hot Edit Map
 
-Use this map before modifying code.
+수정 전 이 표에서 먼저 수정 위치를 잡는다.
 
-| Goal | Primary Location | Secondary Location |
+| 목표 | 1차 수정 위치 | 같이 확인할 위치 |
 | --- | --- | --- |
-| Add/remove a room | `ROOM_DATA` in `src/Game.gd` | Add `scene_*()` and output key in `tools/generate_assets.py` |
-| Change where a click works | `ROOM_DATA[room]["hotspots"]` | Matching visual shape in `tools/generate_assets.py` |
-| Change room captions | `ROOM_DATA[room]["caption"]` | `_room_caption()` for dynamic captions |
-| Change inspect text | `_handle_event()` and `_repeat_event_line()` | Hotspot `event` ids in `ROOM_DATA` |
-| Change navigation triggers | `_go_to_room()` | `ROOM_DATA` hotspot targets |
-| Change first creature peek timing | `_go_to_room()` timer and `_show_stop_sign_creature_peek()` | `paths_taken`, `creature_peek_seen` state |
-| Change later creature proximity | `_advance_creature()` and `_update_creature()` | Current calls to `_advance_creature()` |
-| Change final jump scare | `_trigger_jump()` | `door` room hotspot target |
-| Change visual style globally | `tools/generate_assets.py` constants and drawing helpers | `assets/images/*.png` regeneration |
-| Change final imported art | Replace `assets/images/*.png` | Keep filenames stable unless `ROOM_DATA` changes |
+| 방 추가/삭제 | `src/Game.gd`의 `ROOM_DATA` | `tools/generate_assets.py`의 `scene_*()`와 출력 키 |
+| 클릭 영역 변경 | `ROOM_DATA[room]["hotspots"]` | 해당 배경의 시각 도형 |
+| 방 캡션 변경 | `ROOM_DATA[room]["caption"]` | 동적 캡션은 `_room_caption()` |
+| 조사 문구 변경 | `_handle_event()`, `_repeat_event_line()` | `ROOM_DATA`의 `event` id |
+| 방 이동 조건 변경 | `_go_to_room()` | `ROOM_DATA`의 hotspot target |
+| 첫 크리처 등장 타이밍 변경 | `_go_to_room()`의 timer, `_show_stop_sign_creature_peek()` | `paths_taken`, `creature_peek_seen` |
+| 이후 크리처 접근감 변경 | `_advance_creature()`, `_update_creature()` | `_advance_creature()` 호출 위치 |
+| 최종 점프스케어 변경 | `_trigger_jump()` | `door` 방 hotspot target |
+| 전체 시각 스타일 변경 | `tools/generate_assets.py`의 상수/그리기 함수 | `assets/images/*.png` 재생성 |
+| 최종 이미지 교체 | `assets/images/*.png` 파일 교체 | 파일명을 유지하면 `ROOM_DATA` 수정 불필요 |
 
 ## Room Graph
 
@@ -81,20 +81,20 @@ flowchart LR
     jump --> other["other / ending"]
 ```
 
-Current issue: `hallway` is reachable only from `junction`, while `junction` is not reachable from the current `start -> left/right -> start` loop. Before adding art, confirm whether the intended route should expose `hallway`, `junction`, and `sign`.
+현재 확인할 점: `hallway`는 `junction`에서만 접근 가능하고, `junction`은 현재 `start -> left/right -> start` 루프에서 접근되지 않는다. 최종 아트를 넣기 전에 `hallway`, `junction`, `sign`이 실제 플레이 루트에 들어갈지 먼저 확정해야 한다.
 
 ## State Graph
 
-| State | Variables | Meaning |
+| 상태 | 변수 | 의미 |
 | --- | --- | --- |
-| Current room | `room_id` | Key into `ROOM_DATA`. |
-| Game mode | `game_state` | Currently mostly `play`, `jump`, `ending`; title layer is disabled by `_show_title()`. |
-| Progress count | `move_count` | Room transitions, used for dynamic caption logic. |
-| Creature proximity | `creature_stage` | Main creature visibility/proximity stage. Most automatic stage advancement is currently disabled. |
-| First fork visit | `paths_taken` | Tracks whether left/right path has been entered from `start`. |
-| STOP peek guard | `creature_peek_seen`, `creature_peek_active` | Ensures first STOP-sign creature peek runs once. |
-| Event repeats | `clicked_events` | Prevents repeated inspect text from firing the first-time line again. |
-| Door warning | `door_warning_seen` | First door click warns, second triggers jump scare. |
+| 현재 방 | `room_id` | `ROOM_DATA`의 키. |
+| 게임 모드 | `game_state` | 현재는 주로 `play`, `jump`, `ending`. title 레이어는 `_show_title()`에서 숨김. |
+| 진행 횟수 | `move_count` | 방 이동 횟수. 동적 캡션에 사용. |
+| 크리처 접근 단계 | `creature_stage` | 크리처 표시/접근감 단계. 현재 자동 증가 대부분 비활성. |
+| 첫 갈림길 방문 | `paths_taken` | `start`에서 left/right에 들어갔는지 기록. |
+| STOP 등장 가드 | `creature_peek_seen`, `creature_peek_active` | STOP 표지 뒤 첫 등장 1회 제한. |
+| 조사 반복 | `clicked_events` | 같은 조사 이벤트 반복 시 다른 문구 출력. |
+| 문 경고 | `door_warning_seen` | 첫 문 클릭은 경고, 두 번째는 점프스케어. |
 
 ## Asset Pipeline
 
@@ -109,14 +109,14 @@ flowchart TD
     export --> pages["Deploy builds/web to gh-pages"]
 ```
 
-Rule for this phase: keep generated images as blockout placeholders until the user approves room flow and object placement. Final style should be applied as one coordinated pass, not room-by-room polishing.
+현재 원칙: 방 흐름과 오브젝트 위치가 승인되기 전까지 이미지는 블록아웃으로 유지한다. 최종 스타일은 방별로 따로 다듬지 말고 한 번에 적용한다.
 
-## Refactor Targets
+## 리팩터링 후보
 
-These are not required immediately, but they are the cleanest direction once the flow stabilizes.
+흐름이 안정된 뒤 적용하면 수정 효율이 올라가는 항목이다.
 
-1. Move `ROOM_DATA` into a separate data file or resource.
-2. Add a dev-only hotspot overlay so click regions are visible during review.
-3. Move creature timing into a data table instead of hard-coded timers.
-4. Split rendering/UI setup from story state logic.
-5. Add a small route validation script that catches unreachable rooms and missing image files.
+1. `ROOM_DATA`를 별도 데이터 파일 또는 Godot `Resource`로 분리.
+2. 클릭 영역을 화면에 보여주는 개발용 hotspot overlay 추가.
+3. 크리처 타이밍을 하드코딩 timer 대신 데이터 테이블로 분리.
+4. 렌더링/UI 생성과 스토리 상태 로직 분리.
+5. 도달 불가능한 방, 누락 이미지, 잘못된 target을 잡는 route validation 스크립트 추가.
