@@ -116,11 +116,95 @@ def draw_doorway(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], dark
 
 
 def scene_start() -> Image.Image:
-    img, draw = base_room(10)
-    draw_doorway(draw, (895, 210, 1125, 620), True)
-    draw.rectangle((160, 258, 310, 350), fill=(145, 124, 60), outline=(94, 80, 43), width=5)
-    draw.line((192, 314, 268, 281), fill=(80, 65, 39), width=2)
-    return add_noise(img, 28)
+    img = Image.new("RGB", (W, H), (13, 12, 10))
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((0, 0, W, H), fill=(12, 11, 9))
+    draw.polygon([(0, 120), (440, 190), (440, 600), (0, H)], fill=(78, 71, 46))
+    draw.polygon([(W, 120), (840, 190), (840, 600), (W, H)], fill=(87, 78, 49))
+    draw.polygon([(440, 190), (840, 190), (690, 610), (585, 610)], fill=(18, 17, 14))
+    draw.polygon([(0, H), (W, H), (810, 485), (470, 485)], fill=(89, 79, 47))
+    draw.polygon([(0, 340), (420, 250), (470, 485), (0, H)], fill=(22, 20, 17))
+    draw.polygon([(W, 340), (860, 250), (810, 485), (W, H)], fill=(28, 26, 21))
+    for x in range(0, W, 64):
+        draw.line((x, 0, x - 130, H), fill=(57, 52, 37), width=1)
+    for y in range(420, H, 38):
+        draw.line((0, y, W, y + 16), fill=(55, 48, 33), width=1)
+    fluorescent(draw, 535, 68, 210, 24)
+    random.seed(130)
+    for _ in range(10):
+        x = random.randint(95, 355)
+        y = random.randint(470, 670)
+        draw.line(
+            [(x, y), (x + random.randint(80, 210), y + random.randint(-30, 30))],
+            fill=(100 + random.randint(0, 40), 16, 12),
+            width=random.randint(4, 8),
+        )
+    for _ in range(7):
+        x = random.randint(160, 510)
+        y = random.randint(470, 670)
+        draw.ellipse((x - 8, y - 5, x + 8, y + 5), fill=(93, 12, 10))
+    return add_noise(img, 36, 0.78)
+
+
+def stop_sign_foreground() -> Image.Image:
+    img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    cx, cy = W // 2, 210
+    radius = 86
+    points = []
+    for i in range(8):
+        angle = math.pi / 8 + i * math.pi / 4
+        points.append((cx + int(math.cos(angle) * radius), cy + int(math.sin(angle) * radius)))
+    draw.polygon(points, fill=(113, 19, 17, 245), outline=(216, 188, 121, 255))
+    draw.line(points + [points[0]], fill=(40, 22, 17, 255), width=5)
+    draw.text((cx - 75, cy - 29), "STOP", fill=(238, 224, 177, 255), font=font(50))
+    draw.rectangle((cx - 8, cy + radius - 5, cx + 8, 512), fill=(73, 64, 43, 255))
+    draw.rectangle((cx - 40, 500, cx + 40, 528), fill=(65, 55, 37, 255))
+    return img
+
+
+def scene_left_path() -> Image.Image:
+    img = Image.new("RGB", (W, H), (92, 80, 45))
+    draw = ImageDraw.Draw(img)
+    draw.polygon([(0, 0), (W, 0), (835, 180), (380, 180)], fill=(84, 76, 48))
+    draw.polygon([(0, 0), (380, 180), (470, H), (0, H)], fill=(101, 88, 50))
+    draw.polygon([(W, 0), (835, 180), (775, H), (W, H)], fill=(75, 68, 43))
+    draw.polygon([(380, 180), (835, 180), (775, H), (470, H)], fill=(38, 34, 27))
+    draw.polygon([(0, H), (W, H), (760, 470), (500, 470)], fill=(80, 70, 43))
+    for x in range(0, W, 70):
+        draw.line((x, 0, x + 120, H), fill=(58, 52, 34), width=1)
+    for y in range(230, H, 48):
+        draw.line((0, y, W, y + 20), fill=(58, 50, 34), width=1)
+    fluorescent(draw, 520, 78, 180, 22)
+    random.seed(210)
+    trail = [(470, 620), (535, 540), (610, 500), (685, 455), (725, 385), (760, 300)]
+    for width, color in ((18, (83, 10, 8)), (10, (137, 20, 14)), (4, (177, 36, 23))):
+        draw.line(trail, fill=color, width=width, joint="curve")
+    for _ in range(18):
+        x = random.randint(450, 760)
+        y = random.randint(300, 650)
+        draw.ellipse((x - 10, y - 5, x + 12, y + 6), fill=(95 + random.randint(0, 50), 12, 9))
+    return add_noise(img, 34, 0.82)
+
+
+def scene_right_path() -> Image.Image:
+    img = Image.new("RGB", (W, H), (122, 108, 61))
+    draw = ImageDraw.Draw(img)
+    center = [(430, 170), (850, 170), (780, 540), (500, 540)]
+    left = [(0, 0), (430, 170), (500, 540), (0, H)]
+    right = [(W, 0), (850, 170), (780, 540), (W, H)]
+    ceiling = [(0, 0), (W, 0), (850, 170), (430, 170)]
+    floor = [(0, H), (W, H), (780, 540), (500, 540)]
+    draw.polygon(ceiling, fill=(106, 99, 66))
+    composite_polygon(img, left, (132, 116, 67), 23)
+    composite_polygon(img, right, (120, 108, 65), 11)
+    composite_polygon(img, center, (139, 124, 73), 5)
+    carpet(draw, floor, 310)
+    draw.rectangle((595, 245, 690, 494), fill=(21, 20, 17))
+    fluorescent(draw, 530, 70, 200, 22)
+    for y in range(440, H, 52):
+        draw.line((240, y, 1040, y + 6), fill=(98, 87, 54), width=1)
+    return add_noise(img, 28, 0.90)
 
 
 def scene_hallway() -> Image.Image:
@@ -284,6 +368,9 @@ def main() -> None:
     AUDIO.mkdir(parents=True, exist_ok=True)
     scenes = {
         "bg_start.png": scene_start(),
+        "fg_stop_sign.png": stop_sign_foreground(),
+        "bg_left_path.png": scene_left_path(),
+        "bg_right_path.png": scene_right_path(),
         "bg_hallway.png": scene_hallway(),
         "bg_junction.png": scene_junction(),
         "bg_sign.png": scene_sign(),
@@ -300,4 +387,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

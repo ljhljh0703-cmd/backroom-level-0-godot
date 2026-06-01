@@ -4,10 +4,28 @@ const ROOM_START := "start"
 const ROOM_DATA := {
 	"start": {
 		"image": "res://assets/images/bg_start.png",
-		"caption": "The lights hum too close.",
+		"foreground": "res://assets/images/fg_stop_sign.png",
+		"caption": "The sign is the only thing close enough to read.",
 		"hotspots": [
-			{"rect": Rect2(0.700, 0.240, 0.220, 0.520), "target": "hallway", "prompt": "DARK HALL"},
-			{"rect": Rect2(0.105, 0.350, 0.145, 0.160), "event": "frame", "prompt": "FRAME"}
+			{"rect": Rect2(0.425, 0.175, 0.150, 0.245), "event": "stop_sign", "prompt": "STOP"},
+			{"rect": Rect2(0.035, 0.240, 0.365, 0.650), "target": "left_path", "prompt": "LEFT PATH"},
+			{"rect": Rect2(0.600, 0.240, 0.365, 0.650), "target": "right_path", "prompt": "RIGHT PATH"}
+		]
+	},
+	"left_path": {
+		"image": "res://assets/images/bg_left_path.png",
+		"caption": "A red trail has been dragged into the dark.",
+		"hotspots": [
+			{"rect": Rect2(0.030, 0.090, 0.220, 0.820), "target": "start", "prompt": "BACK"},
+			{"rect": Rect2(0.280, 0.270, 0.500, 0.470), "event": "red_trace", "prompt": "TRACE"}
+		]
+	},
+	"right_path": {
+		"image": "res://assets/images/bg_right_path.png",
+		"caption": "This side is too clean.",
+		"hotspots": [
+			{"rect": Rect2(0.750, 0.090, 0.220, 0.820), "target": "start", "prompt": "BACK"},
+			{"rect": Rect2(0.300, 0.280, 0.440, 0.430), "event": "clean_floor", "prompt": "FLOOR"}
 		]
 	},
 	"hallway": {
@@ -62,10 +80,14 @@ var move_count := 0
 var clicked_events := {}
 var input_cooldown := 0.0
 var door_warning_seen := false
+var paths_taken := {}
+var creature_peek_seen := false
+var creature_peek_active := false
 
 var world: Control
 var background: TextureRect
 var creature: TextureRect
+var foreground: TextureRect
 var noise: TextureRect
 var vignette: TextureRect
 var threat_tint: ColorRect
@@ -119,6 +141,15 @@ func _build_nodes() -> void:
 	creature.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	creature.visible = false
 	world.add_child(creature)
+
+	foreground = TextureRect.new()
+	foreground.name = "Foreground"
+	foreground.set_anchors_preset(Control.PRESET_FULL_RECT)
+	foreground.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	foreground.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	foreground.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	foreground.visible = false
+	world.add_child(foreground)
 
 	noise = TextureRect.new()
 	noise.name = "Noise"
@@ -203,7 +234,7 @@ func _build_nodes() -> void:
 
 	title_label = _make_label(64, Color(0.98, 0.91, 0.56), 4)
 	title_label.name = "Title"
-	title_label.text = "LEVEL 0"
+	title_label.text = ""
 	title_label.set_anchors_preset(Control.PRESET_CENTER)
 	title_label.offset_left = -360
 	title_label.offset_right = 360
@@ -284,21 +315,26 @@ func _load_assets() -> void:
 
 
 func _show_title() -> void:
-	game_state = "title"
+	game_state = "play"
 	room_id = ROOM_START
 	creature_stage = 0
 	move_count = 0
 	miss_clicks = 0
 	clicked_events.clear()
+	paths_taken.clear()
 	door_warning_seen = false
+	creature_peek_seen = false
+	creature_peek_active = false
 	input_cooldown = 0.0
-	title_layer.visible = true
+	title_layer.visible = false
 	restart_label.visible = false
-	caption_label.text = ""
+	caption_label.text = ROOM_DATA[room_id]["caption"]
 	prompt_label.text = ""
 	creature.visible = false
 	threat_tint.color.a = 0.0
 	flash_rect.color.a = 0.0
+	if not hum_player.playing:
+		hum_player.play()
 	_render_room()
 	_fade_from_black(0.5)
 
@@ -372,28 +408,36 @@ func _handle_click(screen_pos: Vector2) -> void:
 
 func _miss_click() -> void:
 	miss_clicks += 1
-	if miss_clicks % 3 == 0 and creature_stage < 4:
-		_advance_creature()
-		_flash_caption("Something steps onto the carpet behind you.")
-		_play_sound(thump_sound)
-		_shake(3.0, 0.18)
+	if miss_clicks % 3 == 0:
+		_flash_caption("The dark does not answer.")
 	else:
-		_flash_caption("The wallpaper is damp and warm.")
+		_flash_caption("Nothing moves.")
 
 
 func _go_to_room(target: String) -> void:
+	var previous_room := room_id
 	move_count += 1
+	if previous_room == ROOM_START and (target == "left_path" or target == "right_path"):
+		paths_taken[target] = true
 	room_id = target
-	_advance_creature()
 	_render_room()
 	_play_sound(thump_sound)
-	_shake(1.5 + creature_stage * 0.5, 0.12)
+	_shake(1.5, 0.12)
 	_fade_from_black(0.20)
+	if target == ROOM_START and (previous_room == "left_path" or previous_room == "right_path") and not creature_peek_seen and not paths_taken.is_empty():
+		var timer := get_tree().create_timer(0.28)
+		timer.timeout.connect(_show_stop_sign_creature_peek)
 
 
 func _render_room() -> void:
 	var room: Dictionary = ROOM_DATA[room_id]
 	background.texture = load(room["image"])
+	if room.has("foreground"):
+		foreground.texture = load(room["foreground"])
+		foreground.visible = true
+	else:
+		foreground.texture = null
+		foreground.visible = false
 	if game_state == "play":
 		caption_label.text = _room_caption(room)
 	elif game_state == "ending":
@@ -485,16 +529,20 @@ func _handle_event(event_name: String) -> void:
 		return
 	clicked_events[event_name] = true
 	match event_name:
+		"stop_sign":
+			_flash_caption("STOP is scratched into metal, not painted.")
 		"frame":
 			_flash_caption("The frame shows this same room, empty.")
 			_flash_screen(Color(1.0, 0.92, 0.58, 0.18), 0.12)
+		"red_trace":
+			_flash_caption("The trail stops before the light reaches it.")
+		"clean_floor":
+			_flash_caption("No dust. No footprints. No reason.")
 		"vent":
-			_advance_creature()
 			_flash_caption("Air moves through the vent like breathing.")
 			_play_sound(thump_sound)
 			_shake(4.5, 0.18)
 		"no_map":
-			_advance_creature()
 			_flash_caption("The map is blank except for one black square.")
 			_play_sound(thump_sound)
 			_shake(3.0, 0.16)
@@ -502,13 +550,47 @@ func _handle_event(event_name: String) -> void:
 
 func _repeat_event_line(event_name: String) -> String:
 	match event_name:
+		"stop_sign":
+			return "It still says STOP."
 		"frame":
 			return "The picture is still empty."
+		"red_trace":
+			return "The red has dried into the carpet."
+		"clean_floor":
+			return "The clean path stays clean."
 		"vent":
 			return "The vent has gone quiet."
 		"no_map":
 			return "The square is exactly where you are."
 	return "Nothing changes."
+
+
+func _show_stop_sign_creature_peek() -> void:
+	if game_state != "play" or room_id != ROOM_START or creature_peek_seen:
+		return
+	creature_peek_seen = true
+	creature_peek_active = true
+	var view := get_viewport_rect().size
+	var target_h := view.y * 0.50
+	var ratio := float(creature_texture.get_width()) / float(creature_texture.get_height())
+	var target_w := target_h * ratio
+	creature.size = Vector2(target_w, target_h)
+	creature.position = Vector2(view.x * 0.5 - target_w * 0.5, view.y * 0.315 - target_h * 0.5)
+	creature.rotation_degrees = 0.0
+	creature.scale = Vector2.ONE
+	creature.modulate = Color(0.88, 0.76, 0.42, 0.0)
+	creature.visible = true
+	_flash_caption("Something was behind the sign.")
+	_play_sound(thump_sound)
+	_shake(4.0, 0.18)
+	var tween := create_tween()
+	tween.tween_property(creature, "modulate:a", 0.55, 0.12)
+	tween.tween_interval(0.68)
+	tween.tween_property(creature, "modulate:a", 0.0, 0.20)
+	tween.tween_callback(func() -> void:
+		creature_peek_active = false
+		creature.visible = false
+	)
 
 
 func _advance_creature(amount: int = 1) -> void:
