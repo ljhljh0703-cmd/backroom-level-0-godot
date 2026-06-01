@@ -1,6 +1,6 @@
 # Development Requirements: Backroom Level 0 v2
 
-상태: GDD v2 승인 후 개발 요구사항 초안
+상태: GDD v2 승인 후 구현 기준, v2 블록아웃 반영 완료
 목적: 구현 전에 route graph, hotspot, state flag, event/ending 조건을 고정한다.
 
 ## 1. Scope
@@ -15,6 +15,7 @@
 - 우측 인간형 판넬 단서, 막다른 길, 복귀 시 판넬 소리와 STOP 뒤 크리처 1초 등장.
 - A/B/C 엔딩 조건.
 - 개발용 hotspot overlay와 route validation.
+- Godot headless A/B/C route QA.
 
 제외:
 
@@ -198,16 +199,16 @@ B 엔딩의 v2 연출은 최소 구현으로 둔다:
 
 ## 10. Implementation Order
 
-1. `ROOM_DATA`를 v2 방 ID와 hotspot으로 교체한다.
-2. 상태 flag와 transition helper를 추가한다.
-3. `stop_back_space`의 어두운/붉은 이미지 전환을 구현한다.
-4. 이벤트 핸들러에 `blood_trace`, `light_switch`, `human_panel`, `attempt_exit`를 추가한다.
-5. A/B/C 엔딩 함수를 분리한다.
-6. 우측 루트 복귀 소리와 STOP 뒤 1초 크리처 beat를 구현한다.
-7. 개발용 hotspot overlay를 추가한다.
-8. route validation 스크립트로 누락 target, 누락 이미지, 도달 불가능 방을 검사한다.
-9. 블록아웃 asset generator를 8개 방 기준으로 갱신한다.
-10. Godot Web export 후 배포 링크로 리뷰한다.
+1. 완료: `data/rooms.json`으로 v2 방 ID와 hotspot을 분리한다.
+2. 완료: 상태 flag와 transition helper를 추가한다.
+3. 완료: `stop_back_space`의 어두운/붉은 이미지 전환을 구현한다.
+4. 완료: 이벤트 핸들러에 `blood_trace`, `light_switch`, `human_panel`, `attempt_exit`를 추가한다.
+5. 완료: A/B/C 엔딩 함수를 분리한다.
+6. 완료: 우측 루트 복귀 소리와 STOP 뒤 1초 크리처 beat를 구현한다.
+7. 완료: 개발용 hotspot overlay를 추가한다.
+8. 완료: route validation 스크립트로 누락 target, 누락 이미지, 도달 불가능 방을 검사한다.
+9. 완료: 블록아웃 asset generator를 8개 방 기준으로 갱신한다.
+10. 진행: Godot Web export 후 배포 링크로 리뷰한다.
 
 ## 11. Acceptance Criteria
 
@@ -224,3 +225,4 @@ B 엔딩의 v2 연출은 최소 구현으로 둔다:
 - 단서가 부족한 상태에서 같은 출구를 누르면 B 엔딩이다.
 - debug overlay로 각 hotspot을 화면에서 확인할 수 있다.
 - route validation에서 누락 target/image와 도달 불가능 방이 없어야 한다.
+- Godot headless QA에서 A/B/C 루트가 모두 통과해야 한다.

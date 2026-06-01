@@ -1,88 +1,46 @@
 extends Control
 
-const ROOM_START := "start"
-const ROOM_DATA := {
-	"start": {
-		"image": "res://assets/images/bg_start.png",
-		"foreground": "res://assets/images/fg_stop_sign.png",
-		"caption": "The sign is the only thing close enough to read.",
-		"hotspots": [
-			{"rect": Rect2(0.425, 0.175, 0.150, 0.245), "event": "stop_sign", "prompt": "STOP"},
-			{"rect": Rect2(0.035, 0.240, 0.365, 0.650), "target": "left_path", "prompt": "LEFT PATH"},
-			{"rect": Rect2(0.600, 0.240, 0.365, 0.650), "target": "right_path", "prompt": "RIGHT PATH"}
-		]
-	},
-	"left_path": {
-		"image": "res://assets/images/bg_left_path.png",
-		"caption": "A red trail has been dragged into the dark.",
-		"hotspots": [
-			{"rect": Rect2(0.030, 0.090, 0.220, 0.820), "target": "start", "prompt": "BACK"},
-			{"rect": Rect2(0.280, 0.270, 0.500, 0.470), "event": "red_trace", "prompt": "TRACE"}
-		]
-	},
-	"right_path": {
-		"image": "res://assets/images/bg_right_path.png",
-		"caption": "This side is too clean.",
-		"hotspots": [
-			{"rect": Rect2(0.750, 0.090, 0.220, 0.820), "target": "start", "prompt": "BACK"},
-			{"rect": Rect2(0.300, 0.280, 0.440, 0.430), "event": "clean_floor", "prompt": "FLOOR"}
-		]
-	},
-	"hallway": {
-		"image": "res://assets/images/bg_hallway.png",
-		"caption": "The same wallpaper keeps going.",
-		"hotspots": [
-			{"rect": Rect2(0.425, 0.245, 0.170, 0.380), "target": "junction", "prompt": "END OF HALL"},
-			{"rect": Rect2(0.030, 0.420, 0.180, 0.360), "target": "start", "prompt": "BACK"}
-		]
-	},
-	"junction": {
-		"image": "res://assets/images/bg_junction.png",
-		"caption": "Footsteps answer one beat late.",
-		"hotspots": [
-			{"rect": Rect2(0.080, 0.245, 0.240, 0.470), "target": "sign", "prompt": "LEFT ROOM"},
-			{"rect": Rect2(0.700, 0.265, 0.230, 0.450), "target": "hallway", "prompt": "RIGHT HALL"},
-			{"rect": Rect2(0.405, 0.360, 0.180, 0.180), "event": "vent", "prompt": "VENT"}
-		]
-	},
-	"sign": {
-		"image": "res://assets/images/bg_sign.png",
-		"caption": "That sign was not here before.",
-		"hotspots": [
-			{"rect": Rect2(0.430, 0.210, 0.280, 0.180), "target": "door", "prompt": "EXIT SIGN"},
-			{"rect": Rect2(0.030, 0.280, 0.220, 0.480), "target": "junction", "prompt": "GO BACK"},
-			{"rect": Rect2(0.365, 0.485, 0.150, 0.120), "event": "no_map", "prompt": "NO MAP"}
-		]
-	},
-	"door": {
-		"image": "res://assets/images/bg_door.png",
-		"caption": "Cold air leaks through the frame.",
-		"hotspots": [
-			{"rect": Rect2(0.405, 0.195, 0.245, 0.600), "target": "jump", "prompt": "OPEN"}
-		]
-	},
-	"other": {
-		"image": "res://assets/images/bg_other.png",
-		"caption": "You got out. Outside was still inside.",
-		"hotspots": []
-	}
+const ROOM_CONFIG_PATH := "res://data/rooms.json"
+const ROOM_FORK := "fork_stop"
+const ROOM_STOP_BACK := "stop_back_space"
+const ROOM_LEFT_PATH := "left_blood_path"
+const ROOM_RIGHT_PATH := "right_panel_path"
+const ROOM_RIGHT_DEAD_END := "right_dead_end"
+const ROOM_TRUE_EXIT := "true_exit_room"
+const ROOM_FALSE_EXIT := "false_exit_room"
+const DEV_LOGGING := true
+
+const FLAG_DEFAULTS := {
+	"stop_back_seen_once": false,
+	"stop_back_reentry_armed": false,
+	"light_switch_pressed": false,
+	"stop_back_red_seen": false,
+	"blood_trace_clicked": false,
+	"panel_clue_clicked": false,
+	"right_dead_end_seen": false,
+	"panel_sound_played": false,
+	"creature_peek_seen": false
 }
 
-var room_id := ROOM_START
+var room_config: Dictionary = {}
+var room_data: Dictionary = {}
+var start_room := ROOM_FORK
+var room_id := ROOM_FORK
+var game_state := "play"
+var ending_id := ""
+var flags: Dictionary = {}
+var clicked_events: Dictionary = {}
 var creature_stage := 0
-var game_state := "title"
+var creature_peek_active := false
+var move_count := 0
+var miss_clicks := 0
+var input_cooldown := 0.0
+var elapsed := 0.0
 var shake_time := 0.0
 var shake_power := 0.0
 var hover_prompt := ""
-var elapsed := 0.0
-var miss_clicks := 0
-var move_count := 0
-var clicked_events := {}
-var input_cooldown := 0.0
-var door_warning_seen := false
-var paths_taken := {}
-var creature_peek_seen := false
-var creature_peek_active := false
+var debug_hotspots_visible := true
+var debug_viewport_size := Vector2.ZERO
 
 var world: Control
 var background: TextureRect
@@ -96,10 +54,7 @@ var click_feedback: ColorRect
 var black_fade: ColorRect
 var caption_label: Label
 var prompt_label: Label
-var title_layer: Control
-var title_label: Label
-var subtitle_label: Label
-var restart_label: Label
+var debug_layer: Control
 var hum_player: AudioStreamPlayer
 var sfx_player: AudioStreamPlayer
 var sting_player: AudioStreamPlayer
@@ -113,10 +68,24 @@ var sting_sound: AudioStream
 func _ready() -> void:
 	randomize()
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_load_room_config()
 	_build_nodes()
 	_load_assets()
-	_show_title()
+	_reset_game()
 	set_process(true)
+
+
+func _load_room_config() -> void:
+	var text := FileAccess.get_file_as_string(ROOM_CONFIG_PATH)
+	var parsed: Variant = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_error("Could not parse room config: %s" % ROOM_CONFIG_PATH)
+		room_config = {}
+		room_data = {}
+		return
+	room_config = parsed
+	start_room = str(room_config.get("start_room", ROOM_FORK))
+	room_data = room_config.get("rooms", {})
 
 
 func _build_nodes() -> void:
@@ -219,55 +188,11 @@ func _build_nodes() -> void:
 	prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	add_child(prompt_label)
 
-	title_layer = Control.new()
-	title_layer.name = "TitleLayer"
-	title_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
-	title_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(title_layer)
-
-	var title_shade := ColorRect.new()
-	title_shade.name = "TitleShade"
-	title_shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	title_shade.color = Color(0, 0, 0, 0.44)
-	title_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	title_layer.add_child(title_shade)
-
-	title_label = _make_label(64, Color(0.98, 0.91, 0.56), 4)
-	title_label.name = "Title"
-	title_label.text = ""
-	title_label.set_anchors_preset(Control.PRESET_CENTER)
-	title_label.offset_left = -360
-	title_label.offset_right = 360
-	title_label.offset_top = -112
-	title_label.offset_bottom = -30
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title_layer.add_child(title_label)
-
-	subtitle_label = _make_label(22, Color(0.84, 0.78, 0.60), 2)
-	subtitle_label.name = "Subtitle"
-	subtitle_label.text = "CLICK / TOUCH"
-	subtitle_label.set_anchors_preset(Control.PRESET_CENTER)
-	subtitle_label.offset_left = -360
-	subtitle_label.offset_right = 360
-	subtitle_label.offset_top = -24
-	subtitle_label.offset_bottom = 24
-	subtitle_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title_layer.add_child(subtitle_label)
-
-	restart_label = _make_label(18, Color(0.75, 0.70, 0.53), 2)
-	restart_label.name = "Restart"
-	restart_label.text = "CLICK TO RESTART"
-	restart_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	restart_label.offset_left = 42
-	restart_label.offset_right = -42
-	restart_label.offset_top = -70
-	restart_label.offset_bottom = -28
-	restart_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	restart_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	restart_label.visible = false
-	add_child(restart_label)
+	debug_layer = Control.new()
+	debug_layer.name = "DebugHotspots"
+	debug_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	debug_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(debug_layer)
 
 	hum_player = AudioStreamPlayer.new()
 	hum_player.name = "Hum"
@@ -311,47 +236,36 @@ func _load_assets() -> void:
 		hum.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	hum_player.stream = hum
 	sting_player.stream = sting_sound
-	_render_room()
 
 
-func _show_title() -> void:
+func _reset_game() -> void:
 	game_state = "play"
-	room_id = ROOM_START
+	ending_id = ""
+	room_id = start_room
 	creature_stage = 0
+	creature_peek_active = false
 	move_count = 0
 	miss_clicks = 0
-	clicked_events.clear()
-	paths_taken.clear()
-	door_warning_seen = false
-	creature_peek_seen = false
-	creature_peek_active = false
 	input_cooldown = 0.0
-	title_layer.visible = false
-	restart_label.visible = false
-	caption_label.text = ROOM_DATA[room_id]["caption"]
-	prompt_label.text = ""
+	clicked_events.clear()
+	_reset_flags()
 	creature.visible = false
+	creature.scale = Vector2.ONE
+	creature.rotation_degrees = 0.0
 	threat_tint.color.a = 0.0
 	flash_rect.color.a = 0.0
+	prompt_label.text = ""
 	if not hum_player.playing:
 		hum_player.play()
 	_render_room()
-	_fade_from_black(0.5)
+	_fade_from_black(0.45)
+	_dev_log("reset room=%s" % room_id)
 
 
-func _start_game() -> void:
-	game_state = "play"
-	title_layer.visible = false
-	restart_label.visible = false
-	caption_label.text = ROOM_DATA[room_id]["caption"]
-	creature_stage = 0
-	move_count = 0
-	miss_clicks = 0
-	input_cooldown = 0.0
-	if not hum_player.playing:
-		hum_player.play()
-	_play_sound(click_sound)
-	_fade_from_black(0.35)
+func _reset_flags() -> void:
+	flags.clear()
+	for key in FLAG_DEFAULTS.keys():
+		flags[key] = FLAG_DEFAULTS[key]
 
 
 func _input(event: InputEvent) -> void:
@@ -361,6 +275,10 @@ func _input(event: InputEvent) -> void:
 		_handle_click(event.position)
 	elif event is InputEventScreenTouch and event.pressed:
 		_handle_click(event.position)
+	elif event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_H:
+			debug_hotspots_visible = not debug_hotspots_visible
+			_render_debug_overlay()
 
 
 func _process(delta: float) -> void:
@@ -376,6 +294,8 @@ func _process(delta: float) -> void:
 		world.position = Vector2(randf_range(-amount, amount), randf_range(-amount, amount))
 	else:
 		world.position = Vector2.ZERO
+	if debug_hotspots_visible and debug_viewport_size != get_viewport_rect().size:
+		_render_debug_overlay()
 
 
 func _handle_click(screen_pos: Vector2) -> void:
@@ -383,11 +303,8 @@ func _handle_click(screen_pos: Vector2) -> void:
 		return
 	input_cooldown = 0.10
 	_show_click_feedback(screen_pos)
-	if game_state == "title":
-		_start_game()
-		return
 	if game_state == "ending":
-		_show_title()
+		_reset_game()
 		return
 	if game_state != "play":
 		return
@@ -399,66 +316,114 @@ func _handle_click(screen_pos: Vector2) -> void:
 		return
 
 	if hotspot.has("event"):
-		_handle_event(hotspot["event"])
-	elif hotspot["target"] == "jump":
-		_trigger_jump()
-	else:
-		_go_to_room(hotspot["target"])
+		_handle_event(str(hotspot["event"]))
+	elif hotspot.has("target"):
+		_go_to_room(str(hotspot["target"]))
 
 
 func _miss_click() -> void:
 	miss_clicks += 1
 	if miss_clicks % 3 == 0:
-		_flash_caption("The dark does not answer.")
+		_flash_caption("어둠은 대답하지 않는다.")
 	else:
-		_flash_caption("Nothing moves.")
+		_flash_caption("아무것도 움직이지 않는다.")
 
 
 func _go_to_room(target: String) -> void:
+	if not room_data.has(target):
+		push_warning("Missing room target: %s" % target)
+		_flash_caption("그쪽은 아직 이어지지 않았다.")
+		return
+
 	var previous_room := room_id
-	move_count += 1
-	if previous_room == ROOM_START and (target == "left_path" or target == "right_path"):
-		paths_taken[target] = true
+	var post_caption := ""
+	var play_panel_sound := false
+
+	if target == ROOM_STOP_BACK and bool(flags["stop_back_reentry_armed"]):
+		_show_ending("C")
+		return
+
+	if previous_room == ROOM_FORK and (target == ROOM_LEFT_PATH or target == ROOM_RIGHT_PATH):
+		flags["stop_back_reentry_armed"] = false
+
+	if target == ROOM_STOP_BACK:
+		flags["stop_back_seen_once"] = true
+		if bool(flags["light_switch_pressed"]):
+			flags["stop_back_red_seen"] = true
+
+	if previous_room == ROOM_STOP_BACK and target == ROOM_FORK:
+		flags["stop_back_reentry_armed"] = true
+
+	if target == ROOM_RIGHT_DEAD_END:
+		flags["right_dead_end_seen"] = true
+
+	if previous_room == ROOM_RIGHT_DEAD_END and target == ROOM_RIGHT_PATH and not bool(flags["panel_sound_played"]):
+		flags["panel_sound_played"] = true
+		post_caption = "판넬 뒤에서 소리가 났다."
+		play_panel_sound = true
+
 	room_id = target
+	move_count += 1
+	_dev_log("move %s -> %s flags=%s" % [previous_room, room_id, _debug_flag_summary()])
 	_render_room()
 	_play_sound(thump_sound)
 	_shake(1.5, 0.12)
 	_fade_from_black(0.20)
-	if target == ROOM_START and (previous_room == "left_path" or previous_room == "right_path") and not creature_peek_seen and not paths_taken.is_empty():
-		var timer := get_tree().create_timer(0.28)
+
+	if play_panel_sound:
+		_play_sting(thump_sound)
+		_shake(4.0, 0.18)
+	if post_caption != "":
+		_flash_caption(post_caption, 1.45)
+
+	if target == ROOM_FORK and previous_room == ROOM_RIGHT_PATH and bool(flags["right_dead_end_seen"]) and not bool(flags["creature_peek_seen"]):
+		var timer := get_tree().create_timer(_creature_beat_float("right_return_peek", "delay", 0.28))
 		timer.timeout.connect(_show_stop_sign_creature_peek)
 
 
 func _render_room() -> void:
-	var room: Dictionary = ROOM_DATA[room_id]
-	background.texture = load(room["image"])
+	if not room_data.has(room_id):
+		return
+	var room: Dictionary = room_data[room_id]
+	background.texture = load(_room_image_path(room))
 	if room.has("foreground"):
-		foreground.texture = load(room["foreground"])
+		foreground.texture = load(str(room["foreground"]))
 		foreground.visible = true
 	else:
 		foreground.texture = null
 		foreground.visible = false
+
 	if game_state == "play":
 		caption_label.text = _room_caption(room)
 	elif game_state == "ending":
-		caption_label.text = room["caption"]
+		caption_label.text = str(room.get("caption", ""))
 	else:
 		caption_label.text = ""
 	prompt_label.text = ""
 	_update_creature()
+	_render_debug_overlay()
+	_publish_state("render")
+
+
+func _room_image_path(room: Dictionary) -> String:
+	if room_id == ROOM_STOP_BACK and bool(flags.get("light_switch_pressed", false)):
+		var state_images: Dictionary = room.get("state_images", {})
+		return str(state_images.get("red", room.get("image", "")))
+	return str(room.get("image", ""))
 
 
 func _room_caption(room: Dictionary) -> String:
-	if creature_stage >= 4 and room_id != "door":
-		return "It knows this room now."
-	if move_count >= 5 and room_id == "hallway":
-		return "This hall is repeating you, not itself."
-	return room["caption"]
+	if room_id == ROOM_STOP_BACK and bool(flags.get("light_switch_pressed", false)):
+		return str(room.get("red_caption", room.get("caption", "")))
+	if creature_stage >= 4 and room_id != ROOM_STOP_BACK:
+		return "이 방을 들킨 것 같다."
+	return str(room.get("caption", ""))
 
 
 func _update_creature() -> void:
-	if game_state != "play" or creature_stage <= 0:
-		creature.visible = false
+	if game_state != "play" or creature_stage <= 0 or creature_peek_active:
+		if not creature_peek_active:
+			creature.visible = false
 		return
 
 	var placements := [
@@ -481,133 +446,217 @@ func _update_creature() -> void:
 	creature.visible = true
 
 
-func _trigger_jump() -> void:
-	if not door_warning_seen:
-		door_warning_seen = true
-		_advance_creature()
-		_flash_caption("The handle turns before you touch it.")
-		_play_sound(thump_sound)
-		_shake(7.0, 0.24)
-		_flash_screen(Color(1.0, 0.92, 0.58, 0.28), 0.16)
-		return
-	game_state = "jump"
-	creature_stage = 5
-	creature.visible = true
-	creature.modulate = Color(1, 0.92, 0.58, 0.96)
-	var view := get_viewport_rect().size
-	var target_h := view.y * 1.62
-	var ratio := float(creature_texture.get_width()) / float(creature_texture.get_height())
-	creature.size = Vector2(target_h * ratio, target_h)
-	creature.position = Vector2(view.x * 0.5 - creature.size.x * 0.5, view.y * 0.52 - creature.size.y * 0.5)
-	caption_label.text = ""
-	prompt_label.text = ""
-	_shake(28.0, 0.85)
-	_play_sound(sting_sound)
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(creature, "scale", Vector2(1.13, 1.13), 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(black_fade, "color:a", 0.0, 0.05)
-	tween.chain().tween_interval(0.55)
-	tween.chain().tween_callback(_show_ending)
-
-
-func _show_ending() -> void:
-	game_state = "ending"
-	room_id = "other"
-	creature.visible = false
-	creature.scale = Vector2.ONE
-	restart_label.visible = false
-	_render_room()
-	caption_label.text = "The door was not an exit."
-	prompt_label.text = "Another yellow room. Click to restart."
-	_fade_from_black(0.7)
-
-
 func _handle_event(event_name: String) -> void:
+	if event_name == "attempt_exit":
+		_attempt_exit()
+		return
+
 	if clicked_events.has(event_name):
 		_flash_caption(_repeat_event_line(event_name))
 		return
 	clicked_events[event_name] = true
+
 	match event_name:
 		"stop_sign":
-			_flash_caption("STOP is scratched into metal, not painted.")
-		"frame":
-			_flash_caption("The frame shows this same room, empty.")
-			_flash_screen(Color(1.0, 0.92, 0.58, 0.18), 0.12)
-		"red_trace":
-			_flash_caption("The trail stops before the light reaches it.")
-		"clean_floor":
-			_flash_caption("No dust. No footprints. No reason.")
-		"vent":
-			_flash_caption("Air moves through the vent like breathing.")
-			_play_sound(thump_sound)
-			_shake(4.5, 0.18)
-		"no_map":
-			_flash_caption("The map is blank except for one black square.")
-			_play_sound(thump_sound)
-			_shake(3.0, 0.16)
+			_flash_caption("글자가 칠해진 게 아니라 파여 있다.")
+		"blood_trace":
+			flags["blood_trace_clicked"] = true
+			_dev_log("event=blood_trace flags=%s" % _debug_flag_summary())
+			_flash_caption("끌린 자국은 왼쪽에서 끊겼다.")
+			_flash_screen(Color(0.82, 0.08, 0.04, 0.18), 0.16)
+		"light_switch":
+			flags["light_switch_pressed"] = true
+			_dev_log("event=light_switch flags=%s" % _debug_flag_summary())
+			_flash_caption("무언가 변한 것 같다.")
+			_play_sting(thump_sound)
+			_flash_screen(Color(1.0, 0.12, 0.06, 0.20), 0.18)
+			_shake(2.5, 0.16)
+			_render_debug_overlay()
+		"human_panel":
+			flags["panel_clue_clicked"] = true
+			_dev_log("event=human_panel flags=%s" % _debug_flag_summary())
+			_flash_caption("사람 모양인데, 너무 평평하다.")
+			_flash_screen(Color(1.0, 0.92, 0.58, 0.10), 0.12)
+		"dead_wall":
+			_flash_caption("여긴 막혀 있다.")
+		_:
+			_flash_caption("아무것도 변하지 않는다.")
 
 
 func _repeat_event_line(event_name: String) -> String:
 	match event_name:
 		"stop_sign":
-			return "It still says STOP."
-		"frame":
-			return "The picture is still empty."
-		"red_trace":
-			return "The red has dried into the carpet."
-		"clean_floor":
-			return "The clean path stays clean."
-		"vent":
-			return "The vent has gone quiet."
-		"no_map":
-			return "The square is exactly where you are."
-	return "Nothing changes."
+			return "여전히 STOP이다."
+		"blood_trace":
+			return "붉은 자국은 이미 말라 있다."
+		"light_switch":
+			return "버튼은 이미 눌려 있다."
+		"human_panel":
+			return "표면은 움직이지 않는다."
+		"dead_wall":
+			return "막힌 벽이다."
+	return "아무것도 변하지 않는다."
+
+
+func _attempt_exit() -> void:
+	_dev_log("event=attempt_exit true_requirements=%s flags=%s" % [str(_has_true_exit_requirements()), _debug_flag_summary()])
+	if _has_true_exit_requirements():
+		_show_ending("A")
+		return
+	game_state = "transition"
+	caption_label.text = "뒤에서 뛰는 소리가 가까워진다."
+	prompt_label.text = ""
+	_publish_state("false_exit_chase")
+	creature_stage = 4
+	_update_creature()
+	_play_sting(sting_sound)
+	_shake(10.0, 0.45)
+	_flash_screen(Color(0.9, 0.07, 0.03, 0.30), 0.28)
+	var timer := get_tree().create_timer(0.75)
+	timer.timeout.connect(func() -> void:
+		_show_ending("B")
+	)
+
+
+func _has_true_exit_requirements() -> bool:
+	return bool(flags["light_switch_pressed"]) and bool(flags["stop_back_red_seen"]) and bool(flags["blood_trace_clicked"]) and bool(flags["panel_clue_clicked"])
+
+
+func _show_ending(id: String) -> void:
+	game_state = "ending"
+	ending_id = id
+	_dev_log("ending=%s flags=%s" % [ending_id, _debug_flag_summary()])
+	input_cooldown = 0.22
+	debug_layer.visible = false
+	creature_peek_active = false
+	creature_stage = 0
+	creature.scale = Vector2.ONE
+	creature.rotation_degrees = 0.0
+
+	match id:
+		"A":
+			room_id = ROOM_TRUE_EXIT
+			creature.visible = false
+			_render_room()
+			caption_label.text = "문 밖은 더 이상 노랗지 않았다."
+			prompt_label.text = "A 엔딩: 진짜 출구. 클릭하면 다시 시작."
+			_fade_from_black(0.65)
+		"B":
+			room_id = ROOM_FALSE_EXIT
+			creature.visible = false
+			_render_room()
+			caption_label.text = "나간 줄 알았다. 벽지가 다시 이어진다."
+			prompt_label.text = "B 엔딩: 탈출 후 백룸. 클릭하면 다시 시작."
+			_fade_from_black(0.65)
+		"C":
+			ending_id = "C"
+			creature.visible = true
+			var view := get_viewport_rect().size
+			var target_h := view.y * 1.55
+			var ratio := float(creature_texture.get_width()) / float(creature_texture.get_height())
+			creature.size = Vector2(target_h * ratio, target_h)
+			creature.position = Vector2(view.x * 0.5 - creature.size.x * 0.5, view.y * 0.52 - creature.size.y * 0.5)
+			creature.modulate = Color(1.0, 0.86, 0.58, 0.96)
+			caption_label.text = "돌아보면 안 됐다."
+			prompt_label.text = "C 엔딩: 크리처에게 잡힘. 클릭하면 다시 시작."
+			_play_sting(sting_sound)
+			_shake(24.0, 0.72)
+			_flash_screen(Color(1.0, 0.05, 0.02, 0.42), 0.34)
+	_publish_state("ending_%s" % id)
 
 
 func _show_stop_sign_creature_peek() -> void:
-	if game_state != "play" or room_id != ROOM_START or creature_peek_seen:
+	if game_state != "play" or room_id != ROOM_FORK or bool(flags["creature_peek_seen"]):
 		return
-	creature_peek_seen = true
+	var beat := _creature_beat("right_return_peek")
+	flags["creature_peek_seen"] = true
 	creature_peek_active = true
+	_dev_log("creature_peek flags=%s" % _debug_flag_summary())
 	var view := get_viewport_rect().size
-	var target_h := view.y * 0.50
+	var center := _creature_beat_vector(beat, "center", Vector2(0.50, 0.315))
+	var target_h := view.y * float(beat.get("height", 0.50))
 	var ratio := float(creature_texture.get_width()) / float(creature_texture.get_height())
 	var target_w := target_h * ratio
 	creature.size = Vector2(target_w, target_h)
-	creature.position = Vector2(view.x * 0.5 - target_w * 0.5, view.y * 0.315 - target_h * 0.5)
+	creature.position = Vector2(view.x * center.x - target_w * 0.5, view.y * center.y - target_h * 0.5)
 	creature.rotation_degrees = 0.0
 	creature.scale = Vector2.ONE
 	creature.modulate = Color(0.88, 0.76, 0.42, 0.0)
 	creature.visible = true
-	_flash_caption("Something was behind the sign.")
-	_play_sound(thump_sound)
-	_shake(4.0, 0.18)
+	_flash_caption(str(beat.get("caption", "방금 표지판 뒤에 무언가 있었다.")), 1.5)
+	_play_sting(_sound_from_name(str(beat.get("sound", "thump"))))
+	_shake(float(beat.get("shake_power", 4.0)), float(beat.get("shake_duration", 0.18)))
 	var tween := create_tween()
-	tween.tween_property(creature, "modulate:a", 0.55, 0.12)
-	tween.tween_interval(0.68)
-	tween.tween_property(creature, "modulate:a", 0.0, 0.20)
+	tween.tween_property(creature, "modulate:a", float(beat.get("alpha", 0.55)), float(beat.get("fade_in", 0.12)))
+	tween.tween_interval(float(beat.get("hold", 0.68)))
+	tween.tween_property(creature, "modulate:a", 0.0, float(beat.get("fade_out", 0.20)))
 	tween.tween_callback(func() -> void:
 		creature_peek_active = false
 		creature.visible = false
 	)
 
 
-func _advance_creature(amount: int = 1) -> void:
-	var previous_stage := creature_stage
-	creature_stage = mini(creature_stage + amount, 4)
-	if creature_stage > previous_stage:
-		_update_creature()
-		_flash_screen(Color(0.72, 0.56, 0.28, 0.12 + creature_stage * 0.035), 0.13)
+func _creature_beat(name: String) -> Dictionary:
+	var beats: Dictionary = room_config.get("creature_beats", {})
+	return beats.get(name, {})
+
+
+func _creature_beat_float(name: String, key: String, fallback: float) -> float:
+	return float(_creature_beat(name).get(key, fallback))
+
+
+func _creature_beat_vector(beat: Dictionary, key: String, fallback: Vector2) -> Vector2:
+	var data: Array = beat.get(key, [])
+	if data.size() != 2:
+		return fallback
+	return Vector2(float(data[0]), float(data[1]))
+
+
+func _sound_from_name(sound_name: String) -> AudioStream:
+	match sound_name:
+		"click":
+			return click_sound
+		"sting":
+			return sting_sound
+		"thump":
+			return thump_sound
+	return thump_sound
 
 
 func _hotspot_at(screen_pos: Vector2) -> Dictionary:
 	var norm := _normalized_position(screen_pos)
-	for hotspot in ROOM_DATA[room_id]["hotspots"]:
-		var rect: Rect2 = hotspot["rect"]
+	for hotspot in _active_hotspots():
+		var rect := _hotspot_rect(hotspot)
 		if rect.has_point(norm):
 			return hotspot
 	return {}
+
+
+func _active_hotspots() -> Array:
+	var result: Array = []
+	if not room_data.has(room_id):
+		return result
+	var room: Dictionary = room_data[room_id]
+	for hotspot in room.get("hotspots", []):
+		if _hotspot_enabled(hotspot):
+			result.append(hotspot)
+	return result
+
+
+func _hotspot_enabled(hotspot: Dictionary) -> bool:
+	if hotspot.has("requires_flag") and not bool(flags.get(str(hotspot["requires_flag"]), false)):
+		return false
+	if hotspot.has("hidden_when_flag") and bool(flags.get(str(hotspot["hidden_when_flag"]), false)):
+		return false
+	return true
+
+
+func _hotspot_rect(hotspot: Dictionary) -> Rect2:
+	var rect_data: Array = hotspot.get("rect", [0.0, 0.0, 0.0, 0.0])
+	return Rect2(
+		Vector2(float(rect_data[0]), float(rect_data[1])),
+		Vector2(float(rect_data[2]), float(rect_data[3]))
+	)
 
 
 func _update_hover(screen_pos: Vector2) -> void:
@@ -618,7 +667,7 @@ func _update_hover(screen_pos: Vector2) -> void:
 	if hotspot.is_empty():
 		hover_prompt = ""
 	else:
-		hover_prompt = hotspot["prompt"]
+		hover_prompt = str(hotspot.get("prompt", ""))
 	prompt_label.text = hover_prompt
 
 
@@ -629,12 +678,111 @@ func _normalized_position(screen_pos: Vector2) -> Vector2:
 	return Vector2(screen_pos.x / view_size.x, screen_pos.y / view_size.y)
 
 
-func _flash_caption(text: String) -> void:
+func _render_debug_overlay() -> void:
+	if debug_layer == null:
+		return
+	for child in debug_layer.get_children():
+		child.queue_free()
+	debug_layer.visible = debug_hotspots_visible and game_state == "play"
+	if not debug_layer.visible:
+		return
+	debug_viewport_size = get_viewport_rect().size
+	var view := debug_viewport_size
+	for hotspot in _active_hotspots():
+		var rect := _hotspot_rect(hotspot)
+		var color_rect := ColorRect.new()
+		color_rect.name = "Hotspot_%s" % str(hotspot.get("id", "unknown"))
+		color_rect.position = Vector2(rect.position.x * view.x, rect.position.y * view.y)
+		color_rect.size = Vector2(rect.size.x * view.x, rect.size.y * view.y)
+		color_rect.color = Color(1.0, 0.80, 0.20, 0.16)
+		color_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		debug_layer.add_child(color_rect)
+
+		var label := _make_label(13, Color(1.0, 0.86, 0.30), 2)
+		label.text = str(hotspot.get("id", "hotspot"))
+		label.position = color_rect.position + Vector2(5, 4)
+		label.size = Vector2(maxf(120.0, color_rect.size.x - 10.0), 22.0)
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		debug_layer.add_child(label)
+
+	var info := _make_label(13, Color(0.72, 0.90, 1.0), 2)
+	info.name = "DebugInfo"
+	info.text = _debug_text()
+	info.position = Vector2(14, 14)
+	info.size = Vector2(500, 130)
+	info.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	debug_layer.add_child(info)
+
+
+func _debug_text() -> String:
+	return "room=%s  end=%s\nswitch=%s red=%s trace=%s panel=%s\nstop_reentry=%s dead_end=%s peek=%s" % [
+		room_id,
+		ending_id,
+		str(flags.get("light_switch_pressed", false)),
+		str(flags.get("stop_back_red_seen", false)),
+		str(flags.get("blood_trace_clicked", false)),
+		str(flags.get("panel_clue_clicked", false)),
+		str(flags.get("stop_back_reentry_armed", false)),
+		str(flags.get("right_dead_end_seen", false)),
+		str(flags.get("creature_peek_seen", false))
+	]
+
+
+func _debug_flag_summary() -> String:
+	return "switch=%s red=%s trace=%s panel=%s reentry=%s dead=%s peek=%s" % [
+		str(flags.get("light_switch_pressed", false)),
+		str(flags.get("stop_back_red_seen", false)),
+		str(flags.get("blood_trace_clicked", false)),
+		str(flags.get("panel_clue_clicked", false)),
+		str(flags.get("stop_back_reentry_armed", false)),
+		str(flags.get("right_dead_end_seen", false)),
+		str(flags.get("creature_peek_seen", false))
+	]
+
+
+func _state_payload(reason: String) -> Dictionary:
+	return {
+		"reason": reason,
+		"room_id": room_id,
+		"game_state": game_state,
+		"ending_id": ending_id,
+		"move_count": move_count,
+		"flags": flags.duplicate(),
+		"active_hotspots": _active_hotspot_ids()
+	}
+
+
+func _active_hotspot_ids() -> Array:
+	var ids: Array = []
+	for hotspot in _active_hotspots():
+		ids.append(str(hotspot.get("id", "")))
+	return ids
+
+
+func _publish_state(reason: String) -> void:
+	if not _is_web_runtime():
+		return
+	var json := JSON.stringify(_state_payload(reason))
+	JavaScriptBridge.eval("window.__BR0_STATE__ = %s; globalThis.__BR0_STATE__ = %s;" % [json, json], true)
+
+
+func _dev_log(message: String) -> void:
+	if DEV_LOGGING:
+		print("[BR0] %s" % message)
+		if _is_web_runtime():
+			JavaScriptBridge.eval("console.log(%s);" % JSON.stringify("[BR0] %s" % message), true)
+
+
+func _is_web_runtime() -> bool:
+	return OS.get_name() == "Web" or OS.has_feature("web")
+
+
+func _flash_caption(text: String, duration: float = 1.25) -> void:
 	caption_label.text = text
-	var timer := get_tree().create_timer(1.25)
+	var timer := get_tree().create_timer(duration)
 	timer.timeout.connect(func() -> void:
-		if game_state == "play":
-			caption_label.text = ROOM_DATA[room_id]["caption"]
+		if game_state == "play" and room_data.has(room_id):
+			caption_label.text = _room_caption(room_data[room_id])
 	)
 
 
@@ -671,3 +819,11 @@ func _play_sound(stream: AudioStream) -> void:
 	sfx_player.stop()
 	sfx_player.stream = stream
 	sfx_player.play()
+
+
+func _play_sting(stream: AudioStream) -> void:
+	if stream == null:
+		return
+	sting_player.stop()
+	sting_player.stream = stream
+	sting_player.play()

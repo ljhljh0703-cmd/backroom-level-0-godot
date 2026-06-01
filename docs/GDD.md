@@ -228,7 +228,7 @@ STOP 뒤 공간 상태:
 
 - 실제 route graph 확정.
 - 개발 요구사항 문서 작성.
-- `ROOM_DATA` 수정 계획 작성.
+- `data/rooms.json` 수정 계획 작성.
 - hotspot debug overlay/route validation부터 구현.
 
 ## 18. Development Notes To Preserve

@@ -8,7 +8,7 @@
 
 현재 시각 단계: 블록아웃 placeholder.
 
-현재 기획 단계: GDD v2 승인 완료, 개발 요구사항 검토 단계.
+현재 기획 단계: GDD v2 승인 완료, v2 블록아웃 구현/검증 단계.
 
 검토 대상:
 
@@ -27,8 +27,8 @@
 - 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=183c17f`
 - Godot: `4.6`
 - 배포 형식: GitHub Pages Web export
-- 현재 단계: development requirements review
-- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` 작성
+- 현재 단계: v2 blockout implementation
+- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` 구현 기준 반영
 
 ## 결정 기록
 
@@ -51,6 +51,8 @@
 | 2026-06-01 | A 진짜 출구와 B 가짜 출구는 서로 다른 방으로 분리한다. | 단서 부족 상태에서 가짜 출구로 몰리는 경험을 디벨롭하기 위해. |
 | 2026-06-01 | 우측 인간 모양 판넬은 클릭 가능한 단서로 둔다. | 우측 막다른 루트에도 의미 있는 상호작용을 주기 위해. |
 | 2026-06-01 | GDD v2를 승인했다. | 개발 요구사항 문서화와 구현 준비 단계로 넘어가기 위해. |
+| 2026-06-01 | 방 그래프를 `data/rooms.json`으로 분리했다. | 방/핫스팟/캡션/크리처 beat를 코드 수정 없이 조절하기 위해. |
+| 2026-06-01 | `validate_routes.py`와 `qa_game_flow.gd`를 추가했다. | 수정 후 route 오류와 A/B/C 루트 회귀를 빠르게 잡기 위해. |
 
 ## 고도화 방향
 
@@ -60,7 +62,7 @@
 
 권장 작업:
 
-- `src/Game.gd`의 `ROOM_DATA`를 `rooms.json` 또는 Godot `Resource`로 분리.
+- `data/rooms.json`을 Godot `Resource` 또는 여러 JSON으로 추가 분리.
 - 방 데이터 필드 표준화: `id`, `image`, `foreground`, `caption`, `hotspots`, `tags`, `entry_events`.
 - 누락 target, 누락 이미지, 중복 id, 도달 불가능 방을 검사하는 validation 스크립트 추가.
 
@@ -100,8 +102,8 @@
 | 첫 갈림길 | 10-20초 | STOP, 좌우 선택, 빨간 흔적 인지. |
 | 첫 경로 | 15-25초 | 크리처 없이 단서 조사. |
 | 복귀 등장 | 5-8초 | STOP 표지 뒤 첫 크리처 등장. |
-| 깊은 경로 | 30-45초 | hallway/junction/sign으로 진행. |
-| 출구 미끼 | 20-30초 | EXIT sign과 final door. |
+| 깊은 경로 | 30-45초 | 좌측 단서와 우측 판넬 단서를 교차 확인. |
+| 출구 미끼 | 20-30초 | 붉어진 STOP 뒤 공간의 빛으로 A/B 분기. |
 | 엔딩 | 10-15초 | 점프/가짜 출구/루프. |
 
 효과: 2분 이내 스코프를 유지할 수 있다.
@@ -113,7 +115,7 @@
 권장 프로세스:
 
 - 모든 방 layout을 블록아웃으로 승인.
-- `ROOM_DATA` 기준으로 shot list 작성.
+- `data/rooms.json` 기준으로 shot list 작성.
 - 같은 스타일 기준으로 모든 배경을 한 번에 생성/교체.
 - 파일명은 `bg_start.png`, `bg_left_path.png`처럼 유지.
 - 전체 이미지 교체 후 캡션, 오디오, 크리처 위치만 튜닝.
@@ -137,31 +139,33 @@
 ## 현재 구현 메모
 
 - `src/Game.gd`는 아직 단일 파일 프로토타입이다.
-- `ROOM_DATA`가 현재 방 그래프와 hotspot의 중심이다.
+- `data/rooms.json`이 현재 방 그래프와 hotspot의 중심이다.
 - 이미지는 `tools/generate_assets.py`로 생성한다.
 - 현재 배경은 개발용 블록아웃 label을 좌상단에 포함한다.
 - 현재 배포 빌드는 GDD v2의 신규 8방 구조가 아직 구현되지 않은 상태다.
-- `hallway`, `junction`, `sign`, `door`, `other`는 존재하지만 현재 첫 루프에서 전체 시퀀스가 자연스럽게 열리지는 않는다. 다음 구현 전에 루트 확정이 필요하다.
+- 기존 `hallway`, `junction`, `sign`, `door`, `other` 자산은 남아 있지만 v2 route에서는 사용하지 않는다.
 - `docs/DEV_REQUIREMENTS.md`는 GDD v2를 실제 구현 단위로 바꾼 기준 문서다.
+- `data/rooms.json`이 현재 v2 방 그래프와 hotspot의 기준이다.
+- `tools/qa_game_flow.gd`는 C, A, B 대표 루트를 Godot headless에서 실제 클릭 좌표로 검증한다.
 
 ## 다음 리뷰 질문
 
-개발 요구사항 검토 질문:
+v2 블록아웃 리뷰 질문:
 
-1. `DEV_REQUIREMENTS.md`의 A 엔딩 필수 단서 조건이 맞는지.
-2. B 엔딩을 "붉은 STOP 뒤 공간에서 출구를 눌렀지만 단서 부족"으로 처리하는 방향이 맞는지.
-3. 이 기준으로 v2 블록아웃 구현에 들어가도 되는지.
+1. A 엔딩 필수 단서 조건이 너무 많거나 적지 않은지.
+2. B 엔딩의 "단서 부족 상태에서 쫓겨 들어감"이 플레이로 납득되는지.
+3. STOP 뒤 공간의 첫 진입 안전/연속 재진입 사망이 의도대로 읽히는지.
+4. hotspot overlay 기준으로 클릭 판정이 넉넉한지.
 
 ## 다음 추천 작업 패킷
 
 가장 작은 유효 작업 단위:
 
-1. `DEV_REQUIREMENTS.md` 승인.
-2. v2 room id로 `ROOM_DATA` 교체.
-3. state flag와 A/B/C 엔딩 분기 구현.
-4. hotspot debug overlay 추가.
-5. route validation script 추가.
-6. blockout build 재배포 후 리뷰.
+1. v2 blockout build 재배포.
+2. 사용자가 링크에서 A/B/C 흐름과 클릭 판정 리뷰.
+3. `data/rooms.json`에서 hotspot/문구/크리처 beat 조정.
+4. B 엔딩 추격감 beat 확장 여부 결정.
+5. 최종 실사풍 이미지 shot list 작성.
 
 이 항목이 승인되기 전까지 최종 배경 작업은 시작하지 않는다.
 
@@ -172,6 +176,7 @@
 | `draft` | GDD 초안 추가. |
 | `draft-v2` | STOP 뒤 공간 상태, 좌측 전등 버튼, 분리된 A/B 출구, 우측 판넬 단서 반영. |
 | `dev-req-v2` | GDD v2 승인 후 개발 요구사항 문서와 target CodeGraph 갱신. |
+| `setup-v2` | JSON 방 그래프, route validation, Godot headless QA, v2 블록아웃 구현. |
 | `183c17f` | 상세 배경을 버리고 구조 검토용 블록아웃으로 전환. |
 | `acedfef` | reference-style 배경 시도. 이후 블록아웃 결정으로 대체됨. |
 | `866c9f9` | STOP 표지 갈림길 피드백과 첫 크리처 등장 지연 반영. |

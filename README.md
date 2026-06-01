@@ -8,6 +8,13 @@ Godot 4 point-and-click horror prototype.
 godot --path .
 ```
 
+## Validate
+
+```bash
+python3 tools/validate_routes.py
+godot --headless --path . --script tools/qa_game_flow.gd
+```
+
 ## Export Web
 
 ```bash
@@ -23,3 +30,4 @@ The current creature sprite is a placeholder. Replace `assets/images/creature.pn
 - [Development Requirements](docs/DEV_REQUIREMENTS.md): approved GDD converted into route, hotspot, state, and ending requirements.
 - [CodeGraph](docs/CODEGRAPH.md): code/data map for efficient edits.
 - [Progress](docs/PROGRESS.md): current decisions, enhancement direction, review log, and next work packet.
+- [Play Experience Proposal](docs/PLAY_EXPERIENCE_PROPOSAL.md): next pass recommendations for tension, clues, and ending feel.

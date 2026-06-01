@@ -94,11 +94,15 @@ def red_trace(draw: ImageDraw.ImageDraw) -> None:
     draw.line([(110, 690), (240, 676), (330, 684)], fill=RED, width=6)
 
 
-def scene_start() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: FORK")
+def scene_fork_stop() -> Image.Image:
+    img, draw = blockout_room("BLOCKOUT: FORK_STOP")
+    draw.rectangle((455, 45, 825, 230), fill=(0, 0, 0), outline=(76, 58, 40), width=3)
+    text_center(draw, (455, 45, 825, 118), "STOP BACK", 28)
     arrow_path(draw, "left", "LEFT")
     arrow_path(draw, "right", "RIGHT")
     red_trace(draw)
+    draw.text((120, 320), "LEFT", fill=HOT, font=font(34))
+    draw.text((1010, 320), "RIGHT", fill=HOT, font=font(34))
     return img
 
 
@@ -119,60 +123,93 @@ def stop_sign_foreground() -> Image.Image:
     return img
 
 
-def scene_left_path() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: LEFT PATH")
-    doorway(draw, (510, 255, 770, 470), "DARK PATH")
+def scene_stop_back_dark() -> Image.Image:
+    img = Image.new("RGB", (W, H), (0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    for y in range(0, H, 48):
+        draw.line((0, y, W, y), fill=(8, 8, 10), width=1)
+    draw.rectangle((0, 0, 270, H), fill=(5, 5, 6), outline=(34, 34, 38), width=2)
+    draw.text((34, 30), "BLOCKOUT: STOP_BACK_DARK", fill=(72, 72, 78), font=font(24))
+    draw.text((44, H // 2 - 20), "BACK", fill=(92, 92, 96), font=font(30))
+    return img
+
+
+def scene_stop_back_red() -> Image.Image:
+    img = Image.new("RGB", (W, H), (7, 0, 0))
+    draw = ImageDraw.Draw(img)
+    for y in range(0, H, 40):
+        draw.line((0, y, W, y), fill=(22, 4, 4), width=2)
+    for x in range(0, W, 70):
+        draw.line((x, 0, W // 2, H // 2), fill=(18, 3, 3), width=1)
+    draw.rectangle((0, 0, 270, H), fill=(8, 5, 5), outline=(70, 22, 18), width=2)
+    draw.ellipse((435, 155, 845, 565), fill=(96, 14, 12), outline=(176, 32, 22), width=6)
+    draw.rectangle((500, 210, 780, 520), fill=(20, 0, 0), outline=(210, 54, 36), width=5)
+    text_center(draw, (500, 210, 780, 520), "RED GAP", 36)
+    draw.text((34, 30), "BLOCKOUT: STOP_BACK_RED", fill=(146, 68, 56), font=font(24))
+    draw.text((44, H // 2 - 20), "BACK", fill=(136, 72, 62), font=font(30))
+    return img
+
+
+def scene_left_blood_path() -> Image.Image:
+    img, draw = blockout_room("BLOCKOUT: LEFT_BLOOD_PATH")
+    doorway(draw, (710, 230, 1080, 615), "SWITCH")
     draw.line([(430, 690), (500, 620), (575, 560), (650, 500), (705, 395)], fill=RED, width=13)
     for x, y in [(470, 650), (535, 600), (610, 550), (690, 480), (720, 420)]:
         draw.ellipse((x - 12, y - 7, x + 12, y + 7), fill=RED)
+    draw.text((330, 590), "DRAG TRACE", fill=(190, 70, 62), font=font(28))
     return img
 
 
-def scene_right_path() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: RIGHT PATH")
-    doorway(draw, (545, 260, 735, 470), "CLEAN PATH")
+def scene_left_switch_room() -> Image.Image:
+    img, draw = blockout_room("BLOCKOUT: LEFT_SWITCH_ROOM")
+    draw.rectangle((520, 250, 760, 475), fill=(34, 34, 38), outline=LINE, width=4)
+    draw.rectangle((576, 305, 704, 420), fill=(16, 16, 18), outline=HOT, width=5)
+    draw.ellipse((618, 338, 662, 382), fill=(114, 28, 20), outline=(220, 80, 52), width=4)
+    text_center(draw, (520, 430, 760, 500), "LIGHT BUTTON", 24)
+    draw.line((320, 610, 470, 560), fill=RED, width=8)
     return img
 
 
-def scene_hallway() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: HALL")
-    doorway(draw, (565, 250, 715, 505), "END")
+def scene_right_panel_path() -> Image.Image:
+    img, draw = blockout_room("BLOCKOUT: RIGHT_PANEL_PATH")
+    doorway(draw, (870, 240, 1195, 610), "DEAD END")
+    draw.rectangle((510, 190, 710, 560), fill=(62, 62, 66), outline=LINE, width=4)
+    draw.ellipse((575, 230, 645, 300), fill=(12, 12, 14))
+    draw.rectangle((595, 298, 625, 430), fill=(12, 12, 14))
+    draw.line((595, 340, 548, 420), fill=(12, 12, 14), width=18)
+    draw.line((625, 340, 672, 420), fill=(12, 12, 14), width=18)
+    draw.line((603, 430, 570, 525), fill=(12, 12, 14), width=18)
+    draw.line((617, 430, 650, 525), fill=(12, 12, 14), width=18)
+    text_center(draw, (500, 560, 720, 615), "PANEL", 24)
     return img
 
 
-def scene_junction() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: JUNCTION")
-    doorway(draw, (90, 250, 310, 610), "LEFT ROOM")
-    doorway(draw, (970, 250, 1190, 610), "RIGHT HALL")
-    draw.rectangle((520, 315, 760, 430), fill=(62, 62, 66), outline=LINE, width=3)
-    text_center(draw, (520, 315, 760, 430), "VENT", 30)
+def scene_right_dead_end() -> Image.Image:
+    img, draw = blockout_room("BLOCKOUT: RIGHT_DEAD_END")
+    draw.rectangle((360, 200, 920, 610), fill=(58, 58, 62), outline=LINE, width=5)
+    draw.line((380, 240, 900, 590), fill=(36, 36, 40), width=5)
+    draw.line((900, 240, 380, 590), fill=(36, 36, 40), width=5)
+    text_center(draw, (430, 340, 850, 460), "DEAD END", 48)
     return img
 
 
-def scene_sign() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: EXIT SIGN ROOM")
-    doorway(draw, (70, 250, 290, 610), "BACK")
-    draw.rectangle((500, 175, 815, 285), fill=(67, 28, 28), outline=HOT, width=4)
-    text_center(draw, (500, 175, 815, 285), "EXIT", 54)
-    draw.polygon([(805, 214), (930, 214), (930, 184), (1030, 230), (930, 276), (930, 246), (805, 246)], fill=(105, 31, 25))
-    draw.rectangle((470, 370, 645, 455), fill=(62, 62, 66), outline=LINE, width=3)
-    text_center(draw, (470, 370, 645, 455), "NO MAP", 24)
+def scene_true_exit_room() -> Image.Image:
+    img, draw = blockout_room("BLOCKOUT: TRUE_EXIT_ROOM")
+    draw.rectangle((455, 135, 825, 650), fill=(88, 88, 82), outline=(220, 205, 138), width=8)
+    draw.rectangle((505, 190, 775, 635), fill=(190, 186, 150), outline=(240, 226, 158), width=5)
+    draw.rectangle((520, 92, 760, 140), fill=(20, 72, 42), outline=HOT, width=4)
+    text_center(draw, (520, 92, 760, 140), "EXIT", 34)
     return img
 
 
-def scene_door() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: FINAL DOOR")
-    draw.rectangle((490, 165, 790, 655), fill=(50, 50, 54), outline=LINE, width=9)
-    draw.rectangle((525, 205, 755, 635), fill=(20, 20, 22), outline=(86, 86, 90), width=3)
-    draw.ellipse((715, 420, 738, 443), fill=HOT)
-    draw.rectangle((520, 104, 760, 150), fill=(20, 48, 32), outline=HOT, width=3)
-    text_center(draw, (520, 104, 760, 150), "EXIT", 32)
-    return img
-
-
-def scene_other() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: END ROOM")
-    doorway(draw, (590, 235, 710, 475), "")
+def scene_false_exit_room() -> Image.Image:
+    img, draw = blockout_room("BLOCKOUT: FALSE_EXIT_ROOM")
+    for i in range(5):
+        inset = i * 58
+        draw.rectangle((405 + inset, 135 + inset // 2, 875 - inset, 650 - inset // 3), outline=(126, 112, 70), width=4)
+    draw.rectangle((510, 110, 770, 158), fill=(68, 24, 20), outline=HOT, width=4)
+    text_center(draw, (510, 110, 770, 158), "EXIT?", 34)
+    draw.text((470, 600), "BACKROOM AGAIN", fill=(140, 120, 74), font=font(30))
     return img
 
 
@@ -261,15 +298,16 @@ def main() -> None:
     IMAGES.mkdir(parents=True, exist_ok=True)
     AUDIO.mkdir(parents=True, exist_ok=True)
     scenes = {
-        "bg_start.png": scene_start(),
+        "bg_fork_stop.png": scene_fork_stop(),
         "fg_stop_sign.png": stop_sign_foreground(),
-        "bg_left_path.png": scene_left_path(),
-        "bg_right_path.png": scene_right_path(),
-        "bg_hallway.png": scene_hallway(),
-        "bg_junction.png": scene_junction(),
-        "bg_sign.png": scene_sign(),
-        "bg_door.png": scene_door(),
-        "bg_other.png": scene_other(),
+        "bg_stop_back_dark.png": scene_stop_back_dark(),
+        "bg_stop_back_red.png": scene_stop_back_red(),
+        "bg_left_blood_path.png": scene_left_blood_path(),
+        "bg_left_switch_room.png": scene_left_switch_room(),
+        "bg_right_panel_path.png": scene_right_panel_path(),
+        "bg_right_dead_end.png": scene_right_dead_end(),
+        "bg_true_exit_room.png": scene_true_exit_room(),
+        "bg_false_exit_room.png": scene_false_exit_room(),
         "vignette.png": vignette(),
         "noise_overlay.png": noise_overlay(),
         "icon.png": icon(),

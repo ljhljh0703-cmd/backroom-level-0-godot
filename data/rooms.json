@@ -1,0 +1,191 @@
+{
+  "start_room": "fork_stop",
+  "ending_rooms": ["true_exit_room", "false_exit_room"],
+  "state_flags": [
+    "stop_back_seen_once",
+    "stop_back_reentry_armed",
+    "light_switch_pressed",
+    "stop_back_red_seen",
+    "blood_trace_clicked",
+    "panel_clue_clicked",
+    "right_dead_end_seen",
+    "panel_sound_played",
+    "creature_peek_seen"
+  ],
+  "events": [
+    "stop_sign",
+    "blood_trace",
+    "light_switch",
+    "human_panel",
+    "dead_wall",
+    "attempt_exit"
+  ],
+  "event_targets": {
+    "attempt_exit": ["true_exit_room", "false_exit_room"]
+  },
+  "creature_beats": {
+    "right_return_peek": {
+      "delay": 0.28,
+      "fade_in": 0.12,
+      "hold": 0.68,
+      "fade_out": 0.20,
+      "center": [0.50, 0.315],
+      "height": 0.50,
+      "alpha": 0.55,
+      "caption": "방금 표지판 뒤에 무언가 있었다.",
+      "sound": "thump",
+      "shake_power": 4.0,
+      "shake_duration": 0.18
+    }
+  },
+  "rooms": {
+    "fork_stop": {
+      "image": "res://assets/images/bg_fork_stop.png",
+      "foreground": "res://assets/images/fg_stop_sign.png",
+      "caption": "표지판 뒤가 비어 있다.",
+      "hotspots": [
+        {
+          "id": "stop_sign",
+          "rect": [0.420, 0.155, 0.160, 0.280],
+          "event": "stop_sign",
+          "prompt": "STOP"
+        },
+        {
+          "id": "stop_back",
+          "rect": [0.375, 0.010, 0.250, 0.250],
+          "target": "stop_back_space",
+          "prompt": "뒤쪽"
+        },
+        {
+          "id": "left_path",
+          "rect": [0.030, 0.235, 0.365, 0.655],
+          "target": "left_blood_path",
+          "prompt": "왼쪽 길"
+        },
+        {
+          "id": "right_path",
+          "rect": [0.605, 0.235, 0.365, 0.655],
+          "target": "right_panel_path",
+          "prompt": "오른쪽 길"
+        }
+      ]
+    },
+    "stop_back_space": {
+      "image": "res://assets/images/bg_stop_back_dark.png",
+      "state_images": {
+        "red": "res://assets/images/bg_stop_back_red.png"
+      },
+      "caption": "아무것도 보이지 않는다.",
+      "red_caption": "어둠이 붉게 젖어 있다.",
+      "hotspots": [
+        {
+          "id": "back_to_fork",
+          "rect": [0.000, 0.080, 0.260, 0.840],
+          "target": "fork_stop",
+          "prompt": "돌아가기"
+        },
+        {
+          "id": "red_exit_gap",
+          "rect": [0.365, 0.255, 0.270, 0.470],
+          "event": "attempt_exit",
+          "prompt": "빛",
+          "requires_flag": "light_switch_pressed"
+        }
+      ]
+    },
+    "left_blood_path": {
+      "image": "res://assets/images/bg_left_blood_path.png",
+      "caption": "붉은 자국이 왼쪽으로 끌려 있다.",
+      "hotspots": [
+        {
+          "id": "blood_trace",
+          "rect": [0.210, 0.540, 0.560, 0.245],
+          "event": "blood_trace",
+          "prompt": "흔적"
+        },
+        {
+          "id": "forward_switch",
+          "rect": [0.610, 0.210, 0.310, 0.590],
+          "target": "left_switch_room",
+          "prompt": "더 안쪽"
+        },
+        {
+          "id": "back_to_fork",
+          "rect": [0.020, 0.150, 0.230, 0.720],
+          "target": "fork_stop",
+          "prompt": "돌아가기"
+        }
+      ]
+    },
+    "left_switch_room": {
+      "image": "res://assets/images/bg_left_switch_room.png",
+      "caption": "벽에 전등 버튼이 하나 있다.",
+      "hotspots": [
+        {
+          "id": "light_switch",
+          "rect": [0.430, 0.325, 0.170, 0.230],
+          "event": "light_switch",
+          "prompt": "버튼"
+        },
+        {
+          "id": "back_left_path",
+          "rect": [0.015, 0.130, 0.250, 0.760],
+          "target": "left_blood_path",
+          "prompt": "돌아가기"
+        }
+      ]
+    },
+    "right_panel_path": {
+      "image": "res://assets/images/bg_right_panel_path.png",
+      "caption": "이쪽 바닥은 너무 깨끗하다.",
+      "hotspots": [
+        {
+          "id": "human_panel",
+          "rect": [0.405, 0.205, 0.220, 0.520],
+          "event": "human_panel",
+          "prompt": "판넬"
+        },
+        {
+          "id": "forward_dead_end",
+          "rect": [0.660, 0.180, 0.300, 0.680],
+          "target": "right_dead_end",
+          "prompt": "앞으로"
+        },
+        {
+          "id": "back_to_fork",
+          "rect": [0.010, 0.130, 0.250, 0.760],
+          "target": "fork_stop",
+          "prompt": "돌아가기"
+        }
+      ]
+    },
+    "right_dead_end": {
+      "image": "res://assets/images/bg_right_dead_end.png",
+      "caption": "여긴 막혀 있다.",
+      "hotspots": [
+        {
+          "id": "dead_wall",
+          "rect": [0.335, 0.210, 0.330, 0.500],
+          "event": "dead_wall",
+          "prompt": "벽"
+        },
+        {
+          "id": "back_panel_path",
+          "rect": [0.000, 0.100, 0.300, 0.800],
+          "target": "right_panel_path",
+          "prompt": "돌아가기"
+        }
+      ]
+    },
+    "true_exit_room": {
+      "image": "res://assets/images/bg_true_exit_room.png",
+      "caption": "문 밖은 더 이상 노랗지 않았다.",
+      "hotspots": []
+    },
+    "false_exit_room": {
+      "image": "res://assets/images/bg_false_exit_room.png",
+      "caption": "나간 줄 알았다. 벽지가 다시 이어진다.",
+      "hotspots": []
+    }
+  }
+}
