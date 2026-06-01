@@ -46,6 +46,7 @@ flowchart TD
 | `tools/validate_routes.py` | JSON 방 그래프의 누락 target/image, unknown event/flag, 도달 불가능 방 검사. | 방 데이터 수정 후. |
 | `tools/qa_game_flow.gd` | Godot headless에서 A/B/C 주요 루트를 실제 클릭 좌표로 자동 검증. | 상태 로직이나 핫스팟 수정 후. |
 | `tools/generate_assets.py` | 블록아웃 이미지, STOP 표지 전경, 오버레이, 임시 오디오 생성. | 블록아웃 배치 변경 또는 최종 배경 일괄 생성. |
+| `tools/prepare_web_build.py` | Web export 후 commit-suffixed `.pck`를 만들고 `index.html`의 `mainPack`을 갱신. | GitHub Pages/browser 캐시가 오래된 `index.pck`를 줄 때. |
 | `assets/images/*.png` | 생성/교체되는 방 이미지와 오버레이. | 레이아웃 승인 뒤 최종 비주얼 패스 적용. |
 | `assets/audio/*.wav` | 임시 앰비언스와 효과음. | 사운드 패스에서 교체 또는 튜닝. |
 | `scenes/main.tscn` | `Game.gd`가 붙은 최소 루트 씬. | UI를 씬 노드로 분리할 때만 수정. |
@@ -167,7 +168,8 @@ flowchart TD
     png --> import["godot --headless --path . --import"]
     wav --> import
     import --> export["godot --headless --path . --export-release Web builds/web/index.html"]
-    export --> pages["Deploy builds/web to gh-pages"]
+    export --> prepare["python3 tools/prepare_web_build.py"]
+    prepare --> pages["Deploy builds/web to gh-pages"]
 ```
 
 현재 원칙: 방 흐름과 오브젝트 위치가 승인되기 전까지 이미지는 블록아웃으로 유지한다. 최종 스타일은 방별로 따로 다듬지 말고 한 번에 적용한다.

@@ -23,12 +23,12 @@
 
 ## 현재 빌드
 
-- 플레이어블 소스 커밋: `66a9f3a`
-- GitHub Pages 배포 커밋: `2e43796`
-- 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=66a9f3a`
+- 플레이어블 소스 커밋: `4b8627a`
+- GitHub Pages 배포 커밋: `67e4111`
+- 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=4b8627a`
 - Godot: `4.6`
-- 배포 형식: GitHub Pages Web export
-- 현재 단계: v2.1 blockout implementation
+- 배포 형식: GitHub Pages Web export, versioned `.pck`
+- 현재 단계: v2.1 blockout review
 - 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` v2.1 결정 반영
 
 ## 결정 기록
@@ -57,6 +57,7 @@
 | 2026-06-01 | A 조건에서 판넬 단서를 제외했다. | 우측 판넬은 정답 필수보다 위화감/크리처 노출 단서에 더 적합함. |
 | 2026-06-01 | B 엔딩 방을 STOP 표지판만 가득한 시작점 변형으로 바꿨다. | 가짜 탈출 후 다시 백룸에 돌아온 감각을 시각적으로 주기 위해. |
 | 2026-06-01 | 모든 방의 방향은 정면 기준으로 유지한다. | 최종 이미지 shot list와 hotspot 검토를 단순화하기 위해. |
+| 2026-06-01 | Web 배포 pack 파일을 commit-suffixed 이름으로 제공한다. | `index.pck` 캐시가 오래된 빌드를 제공하는 문제를 줄이기 위해. |
 
 ## 고도화 방향
 
@@ -135,10 +136,11 @@
 - `python3 tools/generate_assets.py`
 - `godot --headless --path . --import`
 - `godot --headless --path . --export-release Web builds/web/index.html`
+- `python3 tools/prepare_web_build.py`
 - local web build 열기
 - 첫 방, 왼쪽 길, 오른쪽 길, 복귀 등장 확인
 - `builds/web`를 `gh-pages`에 배포
-- 배포된 `index.pck` hash와 local export hash 비교
+- 배포된 versioned `.pck` hash와 local export hash 비교
 
 ## 현재 구현 메모
 
@@ -146,7 +148,7 @@
 - `data/rooms.json`이 현재 방 그래프와 hotspot의 중심이다.
 - 이미지는 `tools/generate_assets.py`로 생성한다.
 - 현재 배경은 개발용 블록아웃 label을 좌상단에 포함한다.
-- 현재 배포 빌드는 GDD v2의 8방 구조를 포함한다. v2.1 변경사항은 재배포 후 현재 빌드 섹션에 기록한다.
+- 현재 배포 빌드는 GDD v2의 8방 구조와 v2.1 STOP 표지판 방/출구 조건 변경을 포함한다.
 - 기존 `hallway`, `junction`, `sign`, `door`, `other` 자산은 남아 있지만 v2 route에서는 사용하지 않는다.
 - `docs/DEV_REQUIREMENTS.md`는 GDD v2를 실제 구현 단위로 바꾼 기준 문서다.
 - `data/rooms.json`이 현재 v2 방 그래프와 hotspot의 기준이다.
@@ -184,6 +186,8 @@ v2 블록아웃 리뷰 질문:
 | `setup-v2` | JSON 방 그래프, route validation, Godot headless QA, v2 블록아웃 구현. |
 | `66a9f3a` | v2 블록아웃 framework 구현. |
 | `2e43796` | v2 블록아웃 Web build 배포. |
+| `4b8627a` | v2.1 STOP 표지판 방, A 조건 완화, B 추격 beat, 강화된 핏자국 반영. |
+| `67e4111` | v2.1 cache-busted Web build 배포. |
 | `183c17f` | 상세 배경을 버리고 구조 검토용 블록아웃으로 전환. |
 | `acedfef` | reference-style 배경 시도. 이후 블록아웃 결정으로 대체됨. |
 | `866c9f9` | STOP 표지 갈림길 피드백과 첫 크리처 등장 지연 반영. |

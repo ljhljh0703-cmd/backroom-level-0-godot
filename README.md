@@ -20,7 +20,10 @@ godot --headless --path . --script tools/qa_game_flow.gd
 ```bash
 mkdir -p builds/web
 godot --headless --path . --export-release Web builds/web/index.html
+python3 tools/prepare_web_build.py
 ```
+
+`prepare_web_build.py` creates a commit-suffixed `.pck` and updates `index.html` so GitHub Pages/browser caches cannot keep serving an older game pack.
 
 The current creature sprite is a placeholder. Replace `assets/images/creature.png` with a processed portrait-derived creature when the final source photo is available.
 
