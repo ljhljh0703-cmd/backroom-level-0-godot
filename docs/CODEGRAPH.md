@@ -64,8 +64,8 @@ flowchart TD
 | 방 캡션 변경 | `data/rooms.json`의 `caption`/`red_caption` | 동적 캡션은 `_room_caption()` |
 | 조사 문구 변경 | `_handle_event()`, `_repeat_event_line()` | `data/rooms.json`의 `event` id |
 | 방 이동 조건 변경 | `_go_to_room()` | `data/rooms.json`의 hotspot target |
-| 첫 크리처 등장 타이밍 변경 | `data/rooms.json`의 `creature_beats.right_return_peek` | `_show_stop_sign_creature_peek()` |
-| 이후 크리처 접근감 변경 | `data/rooms.json`의 `creature_beats`, `_update_creature()` | `_show_stop_sign_creature_peek()`와 엔딩 연출 |
+| 우측 복귀 크리처 등장 타이밍 변경 | `data/rooms.json`의 `creature_beats.right_return_peek` | `_show_stop_sign_creature_peek()` |
+| 이후 크리처 접근감 변경 | `data/rooms.json`의 `creature_beats` | `_show_creature_beat()`와 엔딩 연출 |
 | 엔딩 분기 변경 | `_attempt_exit()`, `_show_ending()` | `data/rooms.json`의 `event_targets.attempt_exit` |
 | 전체 시각 스타일 변경 | `tools/generate_assets.py`의 상수/그리기 함수 | `assets/images/*.png` 재생성 |
 | 최종 이미지 교체 | `assets/images/*.png` 파일 교체 | 파일명을 유지하면 `data/rooms.json` 수정 불필요 |
@@ -137,7 +137,7 @@ v2 상태:
 | 좌측 버튼 | `light_switch_pressed` | STOP 뒤 공간을 붉은 상태로 바꿈. |
 | 붉은 STOP 뒤 확인 | `stop_back_red_seen` | A/B 출구 판정에 사용. |
 | 붉은 흔적 단서 | `blood_trace_clicked` | A 엔딩 필수 단서. |
-| 인간형 판넬 단서 | `panel_clue_clicked` | A 엔딩 필수 단서. |
+| 인간형 판넬 단서 | `panel_clue_clicked` | 우측 루트 위화감/크리처 노출 단서. A 엔딩 필수 조건에서는 제외. |
 | 우측 막다른 길 방문 | `right_dead_end_seen` | 복귀 판넬 소리와 크리처 1초 등장 조건. |
 | 판넬 소리 1회 제한 | `panel_sound_played` | 우측 복귀 사운드 중복 방지. |
 | 엔딩 분기 | `ending_id` | A/B/C 결과 표시. |

@@ -1,6 +1,6 @@
-# Development Requirements: Backroom Level 0 v2
+# Development Requirements: Backroom Level 0 v2.1
 
-상태: GDD v2 승인 후 구현 기준, v2 블록아웃 반영 완료
+상태: GDD v2 승인 후 구현 기준, v2.1 결정 반영
 목적: 구현 전에 route graph, hotspot, state flag, event/ending 조건을 고정한다.
 
 ## 1. Scope
@@ -21,8 +21,7 @@
 
 - 최종 실사풍 배경 이미지.
 - 실시간 추적 AI.
-- 추가 크리처 등장 beat.
-- B 엔딩 추격 연출의 세부 연출 강화. 단, 구조는 이후 디벨롭 가능하게 둔다.
+- 최종 사진 기반 크리처 누끼 작업.
 
 ## 2. Room IDs
 
@@ -37,7 +36,7 @@
 | 5 | `right_panel_path` | 인간형 판넬 길 | `bg_right_panel_path.png` |
 | 6 | `right_dead_end` | 막다른 길 | `bg_right_dead_end.png` |
 | 7 | `true_exit_room` | A 엔딩 방 | `bg_true_exit_room.png` |
-| 8 | `false_exit_room` | B 엔딩 방 | `bg_false_exit_room.png` |
+| 8 | `false_exit_room` | B 엔딩 방: STOP 표지판만 가득한 시작점 변형 | `bg_false_exit_room.png` |
 
 엔딩 C는 별도 방이 아니라 즉시 결과 상태로 처리한다.
 
@@ -72,7 +71,7 @@ flowchart TD
 | `light_switch_pressed` | `false` | `left_switch_room` 버튼 클릭 | STOP 뒤 공간 붉은 상태 |
 | `stop_back_red_seen` | `false` | 버튼 작동 후 `stop_back_space` 진입 | A/B 출구 판정 |
 | `blood_trace_clicked` | `false` | `left_blood_path` 붉은 흔적 클릭 | A 엔딩 필수 단서 |
-| `panel_clue_clicked` | `false` | `right_panel_path` 인간형 판넬 클릭 | A 엔딩 필수 단서 |
+| `panel_clue_clicked` | `false` | `right_panel_path` 인간형 판넬 클릭 | 우측 루트 위화감/크리처 노출 단서. A 필수 조건에서는 제외. |
 | `right_dead_end_seen` | `false` | `right_dead_end` 진입 | 복귀 시 판넬 소리 조건 |
 | `panel_sound_played` | `false` | `right_dead_end -> right_panel_path` 복귀 후 1회 | 우측 루트 위화감 |
 | `creature_peek_seen` | `false` | 우측 루트 후 `fork_stop` 복귀 시 1회 | STOP 뒤 크리처 1초 등장 제한 |
@@ -161,7 +160,7 @@ flowchart TD
 | Enter `stop_back_space` | `stop_back_reentry_armed == true` | 즉시 C 엔딩. |
 | Enter `stop_back_space` | `light_switch_pressed == false` | 어두운 방 이미지/캡션. |
 | Enter `stop_back_space` | `light_switch_pressed == true` | 붉은 방 이미지/캡션, `stop_back_red_seen = true`. |
-| Leave `stop_back_space` to `fork_stop` | 항상 | `stop_back_reentry_armed = true`. |
+| Leave `stop_back_space` to `fork_stop` | 항상 | `stop_back_reentry_armed = true`, 경고음을 1회 재생. |
 | Leave `fork_stop` to left/right | 항상 | `stop_back_reentry_armed = false`. |
 | Enter `right_dead_end` | 항상 | `right_dead_end_seen = true`. |
 | Return `right_dead_end -> right_panel_path` | `panel_sound_played == false` | 판넬 소리, 캡션, `panel_sound_played = true`. |
@@ -171,14 +170,15 @@ flowchart TD
 
 | Ending | 조건 | 처리 |
 | --- | --- | --- |
-| A 진짜 출구 | `attempt_exit` 시 `light_switch_pressed && stop_back_red_seen && blood_trace_clicked && panel_clue_clicked` | `true_exit_room` 진입 후 A 엔딩 캡션. |
-| B 탈출 후 백룸 | `attempt_exit` 시 A 조건 중 하나라도 부족 | 짧은 추격 압박 캡션 후 `false_exit_room` 진입. |
+| A 진짜 출구 | `attempt_exit` 시 `light_switch_pressed && stop_back_red_seen && blood_trace_clicked` | `true_exit_room` 진입. 진짜 출구는 정면의 일반 문. |
+| B 탈출 후 백룸 | `attempt_exit` 시 A 조건 중 하나라도 부족 | 추격 beat 후 `false_exit_room` 진입. 방은 시작점처럼 보이지만 STOP 표지판만 가득하고 바닥 문이 있다. |
 | C 크리처에게 잡힘 | STOP 뒤 공간 연속 재진입 | 즉시 C 엔딩. |
 
-B 엔딩의 v2 연출은 최소 구현으로 둔다:
+B 엔딩의 v2.1 연출:
 
-- `false_exit_room` 진입 직전에 소리/흔들림/캡션으로 "쫓겨 들어갔다"는 감각을 준다.
-- 추후 승인 후 추격 컷, 빠른 클릭, 화면 흔들림 등을 beat로 확장한다.
+- `false_exit_room` 진입 직전에 소리/흔들림/크리처 실루엣으로 "쫓겨 들어갔다"는 감각을 준다.
+- 엔딩 방에서 설명 캡션은 쓰지 않는다.
+- 추후 승인 후 바닥 문 연출과 추격 컷을 강화한다.
 
 ## 9. Caption Draft
 
@@ -194,7 +194,6 @@ B 엔딩의 v2 연출은 최소 구현으로 둔다:
 | 막다른 길 | `여긴 막혀 있다.` |
 | 판넬 복귀 소리 | `판넬 뒤에서 소리가 났다.` |
 | 크리처 1초 등장 | `방금 표지판 뒤에 무언가 있었다.` |
-| B 진입 직전 | `뒤에서 뛰는 소리가 가까워진다.` |
 | C | `돌아보면 안 됐다.` |
 
 ## 10. Implementation Order
@@ -223,6 +222,8 @@ B 엔딩의 v2 연출은 최소 구현으로 둔다:
 - `blood_trace`, `human_panel`, `light_switch`가 클릭 가능한 단서/트리거로 작동한다.
 - 필요한 단서를 모두 얻은 뒤 붉은 STOP 뒤 공간에서 출구를 누르면 A 엔딩이다.
 - 단서가 부족한 상태에서 같은 출구를 누르면 B 엔딩이다.
+- A 엔딩은 판넬 클릭 없이도 가능해야 한다.
+- B 엔딩 방은 상호작용 없는 STOP 표지판 방이어야 한다.
 - debug overlay로 각 hotspot을 화면에서 확인할 수 있다.
 - route validation에서 누락 target/image와 도달 불가능 방이 없어야 한다.
 - Godot headless QA에서 A/B/C 루트가 모두 통과해야 한다.

@@ -338,6 +338,7 @@ func _go_to_room(target: String) -> void:
 	var previous_room := room_id
 	var post_caption := ""
 	var play_panel_sound := false
+	var play_stop_back_warning := false
 
 	if target == ROOM_STOP_BACK and bool(flags["stop_back_reentry_armed"]):
 		_show_ending("C")
@@ -353,6 +354,7 @@ func _go_to_room(target: String) -> void:
 
 	if previous_room == ROOM_STOP_BACK and target == ROOM_FORK:
 		flags["stop_back_reentry_armed"] = true
+		play_stop_back_warning = true
 
 	if target == ROOM_RIGHT_DEAD_END:
 		flags["right_dead_end_seen"] = true
@@ -373,6 +375,9 @@ func _go_to_room(target: String) -> void:
 	if play_panel_sound:
 		_play_sting(thump_sound)
 		_shake(4.0, 0.18)
+	if play_stop_back_warning:
+		_play_sting(sting_sound)
+		_shake(2.4, 0.14)
 	if post_caption != "":
 		_flash_caption(post_caption, 1.45)
 
@@ -471,6 +476,7 @@ func _handle_event(event_name: String) -> void:
 			_play_sting(thump_sound)
 			_flash_screen(Color(1.0, 0.12, 0.06, 0.20), 0.18)
 			_shake(2.5, 0.16)
+			_schedule_creature_beat("switch_shadow")
 			_render_debug_overlay()
 		"human_panel":
 			flags["panel_clue_clicked"] = true
@@ -504,22 +510,19 @@ func _attempt_exit() -> void:
 		_show_ending("A")
 		return
 	game_state = "transition"
-	caption_label.text = "뒤에서 뛰는 소리가 가까워진다."
+	caption_label.text = ""
 	prompt_label.text = ""
 	_publish_state("false_exit_chase")
-	creature_stage = 4
-	_update_creature()
-	_play_sting(sting_sound)
-	_shake(10.0, 0.45)
 	_flash_screen(Color(0.9, 0.07, 0.03, 0.30), 0.28)
-	var timer := get_tree().create_timer(0.75)
+	_show_creature_beat("false_exit_chase")
+	var timer := get_tree().create_timer(_creature_beat_total("false_exit_chase", 0.95))
 	timer.timeout.connect(func() -> void:
 		_show_ending("B")
 	)
 
 
 func _has_true_exit_requirements() -> bool:
-	return bool(flags["light_switch_pressed"]) and bool(flags["stop_back_red_seen"]) and bool(flags["blood_trace_clicked"]) and bool(flags["panel_clue_clicked"])
+	return bool(flags["light_switch_pressed"]) and bool(flags["stop_back_red_seen"]) and bool(flags["blood_trace_clicked"])
 
 
 func _show_ending(id: String) -> void:
@@ -545,8 +548,8 @@ func _show_ending(id: String) -> void:
 			room_id = ROOM_FALSE_EXIT
 			creature.visible = false
 			_render_room()
-			caption_label.text = "나간 줄 알았다. 벽지가 다시 이어진다."
-			prompt_label.text = "B 엔딩: 탈출 후 백룸. 클릭하면 다시 시작."
+			caption_label.text = ""
+			prompt_label.text = "B 엔딩. 클릭하면 다시 시작."
 			_fade_from_black(0.65)
 		"C":
 			ending_id = "C"
@@ -568,10 +571,23 @@ func _show_ending(id: String) -> void:
 func _show_stop_sign_creature_peek() -> void:
 	if game_state != "play" or room_id != ROOM_FORK or bool(flags["creature_peek_seen"]):
 		return
-	var beat := _creature_beat("right_return_peek")
 	flags["creature_peek_seen"] = true
-	creature_peek_active = true
 	_dev_log("creature_peek flags=%s" % _debug_flag_summary())
+	_show_creature_beat("right_return_peek")
+
+
+func _schedule_creature_beat(name: String) -> void:
+	var timer := get_tree().create_timer(_creature_beat_float(name, "delay", 0.0))
+	timer.timeout.connect(func() -> void:
+		_show_creature_beat(name)
+	)
+
+
+func _show_creature_beat(name: String) -> void:
+	var beat := _creature_beat(name)
+	if beat.is_empty() or creature_texture == null:
+		return
+	creature_peek_active = true
 	var view := get_viewport_rect().size
 	var center := _creature_beat_vector(beat, "center", Vector2(0.50, 0.315))
 	var target_h := view.y * float(beat.get("height", 0.50))
@@ -583,7 +599,9 @@ func _show_stop_sign_creature_peek() -> void:
 	creature.scale = Vector2.ONE
 	creature.modulate = Color(0.88, 0.76, 0.42, 0.0)
 	creature.visible = true
-	_flash_caption(str(beat.get("caption", "방금 표지판 뒤에 무언가 있었다.")), 1.5)
+	var beat_caption := str(beat.get("caption", ""))
+	if beat_caption != "":
+		_flash_caption(beat_caption, 1.5)
 	_play_sting(_sound_from_name(str(beat.get("sound", "thump"))))
 	_shake(float(beat.get("shake_power", 4.0)), float(beat.get("shake_duration", 0.18)))
 	var tween := create_tween()
@@ -594,6 +612,13 @@ func _show_stop_sign_creature_peek() -> void:
 		creature_peek_active = false
 		creature.visible = false
 	)
+
+
+func _creature_beat_total(name: String, fallback: float) -> float:
+	var beat := _creature_beat(name)
+	if beat.is_empty():
+		return fallback
+	return float(beat.get("delay", 0.0)) + float(beat.get("fade_in", 0.0)) + float(beat.get("hold", 0.0)) + float(beat.get("fade_out", 0.0))
 
 
 func _creature_beat(name: String) -> Dictionary:

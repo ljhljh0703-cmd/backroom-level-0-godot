@@ -89,9 +89,31 @@ def arrow_path(draw: ImageDraw.ImageDraw, side: str, label: str) -> None:
 
 
 def red_trace(draw: ImageDraw.ImageDraw) -> None:
-    trail = [(90, 662), (175, 640), (260, 646), (345, 618), (430, 624)]
-    draw.line(trail, fill=RED, width=9)
-    draw.line([(110, 690), (240, 676), (330, 684)], fill=RED, width=6)
+    trail = [(70, 668), (150, 640), (245, 648), (335, 612), (448, 622)]
+    draw.line(trail, fill=(62, 4, 4), width=28, joint="curve")
+    draw.line(trail, fill=(154, 18, 14), width=17, joint="curve")
+    draw.line([(92, 695), (210, 675), (320, 685), (405, 660)], fill=(126, 12, 10), width=11, joint="curve")
+    for x, y, rx, ry in [
+        (105, 650, 30, 12),
+        (188, 632, 22, 8),
+        (274, 648, 38, 13),
+        (366, 616, 28, 10),
+        (426, 634, 18, 7),
+        (238, 690, 20, 8),
+    ]:
+        draw.ellipse((x - rx, y - ry, x + rx, y + ry), fill=(112, 9, 8))
+
+
+def stop_sign_shape(draw: ImageDraw.ImageDraw, cx: int, cy: int, radius: int, alpha_fill: tuple[int, int, int] = (113, 19, 17)) -> None:
+    points = []
+    for i in range(8):
+        angle = math.pi / 8 + i * math.pi / 4
+        points.append((cx + int(math.cos(angle) * radius), cy + int(math.sin(angle) * radius)))
+    draw.polygon(points, fill=alpha_fill, outline=(214, 188, 120))
+    draw.line(points + [points[0]], fill=(40, 22, 17), width=max(2, radius // 16))
+    label_font = font(max(14, radius // 2))
+    bbox = draw.textbbox((0, 0), "STOP", font=label_font)
+    draw.text((cx - (bbox[2] - bbox[0]) / 2, cy - (bbox[3] - bbox[1]) / 2 - radius * 0.05), "STOP", fill=(238, 224, 177), font=label_font)
 
 
 def scene_fork_stop() -> Image.Image:
@@ -153,9 +175,28 @@ def scene_stop_back_red() -> Image.Image:
 def scene_left_blood_path() -> Image.Image:
     img, draw = blockout_room("BLOCKOUT: LEFT_BLOOD_PATH")
     doorway(draw, (710, 230, 1080, 615), "SWITCH")
-    draw.line([(430, 690), (500, 620), (575, 560), (650, 500), (705, 395)], fill=RED, width=13)
-    for x, y in [(470, 650), (535, 600), (610, 550), (690, 480), (720, 420)]:
-        draw.ellipse((x - 12, y - 7, x + 12, y + 7), fill=RED)
+    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    blood = ImageDraw.Draw(overlay)
+    main_trail = [(360, 700), (430, 650), (500, 602), (574, 548), (646, 490), (704, 390)]
+    blood.line(main_trail, fill=(64, 0, 0, 180), width=46, joint="curve")
+    blood.line(main_trail, fill=(152, 11, 8, 225), width=27, joint="curve")
+    blood.line([(400, 690), (455, 666), (505, 671), (572, 632)], fill=(182, 28, 20, 190), width=18, joint="curve")
+    blood.line([(548, 590), (616, 585), (690, 552), (754, 510)], fill=(118, 6, 6, 170), width=16, joint="curve")
+    for x, y, rx, ry, color in [
+        (405, 678, 52, 20, (86, 0, 0, 200)),
+        (492, 617, 42, 16, (136, 8, 7, 215)),
+        (578, 552, 48, 18, (166, 16, 10, 225)),
+        (654, 484, 36, 13, (112, 4, 4, 200)),
+        (712, 410, 26, 11, (158, 20, 14, 215)),
+        (475, 700, 20, 8, (198, 30, 20, 180)),
+        (602, 625, 18, 8, (120, 0, 0, 180)),
+        (748, 560, 15, 6, (150, 8, 8, 170)),
+    ]:
+        blood.ellipse((x - rx, y - ry, x + rx, y + ry), fill=color)
+    blood.polygon([(438, 650), (512, 622), (592, 638), (542, 676), (468, 688)], fill=(78, 0, 0, 145))
+    overlay = overlay.filter(ImageFilter.GaussianBlur(1.1))
+    img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
+    draw = ImageDraw.Draw(img)
     draw.text((330, 590), "DRAG TRACE", fill=(190, 70, 62), font=font(28))
     return img
 
@@ -203,13 +244,19 @@ def scene_true_exit_room() -> Image.Image:
 
 
 def scene_false_exit_room() -> Image.Image:
-    img, draw = blockout_room("BLOCKOUT: FALSE_EXIT_ROOM")
-    for i in range(5):
-        inset = i * 58
-        draw.rectangle((405 + inset, 135 + inset // 2, 875 - inset, 650 - inset // 3), outline=(126, 112, 70), width=4)
-    draw.rectangle((510, 110, 770, 158), fill=(68, 24, 20), outline=HOT, width=4)
-    text_center(draw, (510, 110, 770, 158), "EXIT?", 34)
-    draw.text((470, 600), "BACKROOM AGAIN", fill=(140, 120, 74), font=font(30))
+    img, draw = blockout_room("BLOCKOUT: FALSE_EXIT_STOP_ROOM")
+    draw.rectangle((0, 0, W, H), fill=(13, 12, 10))
+    for y in range(95, 620, 118):
+        for x in range(85, 1220, 152):
+            jitter_x = (x * 17 + y * 3) % 31 - 15
+            jitter_y = (x * 7 + y * 11) % 23 - 11
+            radius = 39 + ((x + y) % 18)
+            stop_sign_shape(draw, x + jitter_x, y + jitter_y, radius, (92, 14, 13))
+            draw.rectangle((x + jitter_x - 4, y + jitter_y + radius - 2, x + jitter_x + 4, y + jitter_y + radius + 92), fill=(58, 48, 32))
+    floor_hatch = [(470, 625), (810, 625), (920, 715), (360, 715)]
+    draw.polygon(floor_hatch, fill=(3, 3, 4), outline=(150, 32, 24))
+    draw.line((430, 670, 850, 670), fill=(98, 20, 16), width=5)
+    draw.text((34, 30), "BLOCKOUT: FALSE_EXIT_STOP_ROOM", fill=(130, 88, 72), font=font(24))
     return img
 
 

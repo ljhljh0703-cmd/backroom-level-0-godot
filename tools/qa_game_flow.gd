@@ -17,6 +17,7 @@ func _run() -> void:
 	await process_frame
 
 	await _test_c_ending()
+	await _test_right_route_peek()
 	await _test_a_ending()
 	await _test_b_ending()
 
@@ -51,12 +52,6 @@ func _test_a_ending() -> void:
 	await _click_norm(0.50, 0.43)
 	await _click_norm(0.10, 0.50)
 	await _click_norm(0.10, 0.50)
-	await _click_norm(0.82, 0.55)
-	await _click_norm(0.50, 0.45)
-	await _click_norm(0.80, 0.45)
-	await _click_norm(0.10, 0.50)
-	await _click_norm(0.10, 0.50)
-	await _wait_seconds(1.1)
 	await _click_norm(0.50, 0.10)
 	_expect_flag("stop_back_red_seen", true, "A red stop back seen")
 	await _click_norm(0.50, 0.50)
@@ -75,6 +70,20 @@ func _test_b_ending() -> void:
 	await _click_norm(0.50, 0.50)
 	await _wait_seconds(0.9)
 	_expect_ending("B", "B false exit")
+	_expect_room("false_exit_room", "B stop sign room")
+
+
+func _test_right_route_peek() -> void:
+	game._reset_game()
+	await process_frame
+	await _click_norm(0.82, 0.55)
+	await _click_norm(0.50, 0.45)
+	await _click_norm(0.80, 0.45)
+	await _click_norm(0.10, 0.50)
+	await _click_norm(0.10, 0.50)
+	await _wait_seconds(1.1)
+	_expect_flag("panel_clue_clicked", true, "right panel clue")
+	_expect_flag("creature_peek_seen", true, "right return creature peek")
 
 
 func _click_norm(x: float, y: float) -> void:

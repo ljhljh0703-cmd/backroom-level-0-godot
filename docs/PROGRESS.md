@@ -8,7 +8,7 @@
 
 현재 시각 단계: 블록아웃 placeholder.
 
-현재 기획 단계: GDD v2 승인 완료, v2 블록아웃 구현/검증 단계.
+현재 기획 단계: GDD v2 승인 완료, v2.1 블록아웃 구현/검증 단계.
 
 검토 대상:
 
@@ -28,8 +28,8 @@
 - 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=66a9f3a`
 - Godot: `4.6`
 - 배포 형식: GitHub Pages Web export
-- 현재 단계: v2 blockout implementation
-- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` 구현 기준 반영
+- 현재 단계: v2.1 blockout implementation
+- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` v2.1 결정 반영
 
 ## 결정 기록
 
@@ -54,6 +54,9 @@
 | 2026-06-01 | GDD v2를 승인했다. | 개발 요구사항 문서화와 구현 준비 단계로 넘어가기 위해. |
 | 2026-06-01 | 방 그래프를 `data/rooms.json`으로 분리했다. | 방/핫스팟/캡션/크리처 beat를 코드 수정 없이 조절하기 위해. |
 | 2026-06-01 | `validate_routes.py`와 `qa_game_flow.gd`를 추가했다. | 수정 후 route 오류와 A/B/C 루트 회귀를 빠르게 잡기 위해. |
+| 2026-06-01 | A 조건에서 판넬 단서를 제외했다. | 우측 판넬은 정답 필수보다 위화감/크리처 노출 단서에 더 적합함. |
+| 2026-06-01 | B 엔딩 방을 STOP 표지판만 가득한 시작점 변형으로 바꿨다. | 가짜 탈출 후 다시 백룸에 돌아온 감각을 시각적으로 주기 위해. |
+| 2026-06-01 | 모든 방의 방향은 정면 기준으로 유지한다. | 최종 이미지 shot list와 hotspot 검토를 단순화하기 위해. |
 
 ## 고도화 방향
 
@@ -143,7 +146,7 @@
 - `data/rooms.json`이 현재 방 그래프와 hotspot의 중심이다.
 - 이미지는 `tools/generate_assets.py`로 생성한다.
 - 현재 배경은 개발용 블록아웃 label을 좌상단에 포함한다.
-- 현재 배포 빌드는 GDD v2의 신규 8방 구조가 아직 구현되지 않은 상태다.
+- 현재 배포 빌드는 GDD v2의 8방 구조를 포함한다. v2.1 변경사항은 재배포 후 현재 빌드 섹션에 기록한다.
 - 기존 `hallway`, `junction`, `sign`, `door`, `other` 자산은 남아 있지만 v2 route에서는 사용하지 않는다.
 - `docs/DEV_REQUIREMENTS.md`는 GDD v2를 실제 구현 단위로 바꾼 기준 문서다.
 - `data/rooms.json`이 현재 v2 방 그래프와 hotspot의 기준이다.
@@ -153,16 +156,17 @@
 
 v2 블록아웃 리뷰 질문:
 
-1. A 엔딩 필수 단서 조건이 너무 많거나 적지 않은지.
+1. A 엔딩 필수 단서 조건이 너무 쉬워졌는지.
 2. B 엔딩의 "단서 부족 상태에서 쫓겨 들어감"이 플레이로 납득되는지.
 3. STOP 뒤 공간의 첫 진입 안전/연속 재진입 사망이 의도대로 읽히는지.
 4. hotspot overlay 기준으로 클릭 판정이 넉넉한지.
+5. 강화된 핏자국이 최종 이미지 전 블록아웃으로 충분한지.
 
 ## 다음 추천 작업 패킷
 
 가장 작은 유효 작업 단위:
 
-1. v2 blockout build 재배포.
+1. v2.1 blockout build 재배포.
 2. 사용자가 링크에서 A/B/C 흐름과 클릭 판정 리뷰.
 3. `data/rooms.json`에서 hotspot/문구/크리처 beat 조정.
 4. B 엔딩 추격감 beat 확장 여부 결정.

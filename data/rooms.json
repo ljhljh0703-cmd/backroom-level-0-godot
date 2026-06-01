@@ -24,6 +24,19 @@
     "attempt_exit": ["true_exit_room", "false_exit_room"]
   },
   "creature_beats": {
+    "switch_shadow": {
+      "delay": 0.06,
+      "fade_in": 0.08,
+      "hold": 0.18,
+      "fade_out": 0.18,
+      "center": [0.72, 0.43],
+      "height": 0.32,
+      "alpha": 0.28,
+      "caption": "",
+      "sound": "thump",
+      "shake_power": 2.2,
+      "shake_duration": 0.14
+    },
     "right_return_peek": {
       "delay": 0.28,
       "fade_in": 0.12,
@@ -36,6 +49,19 @@
       "sound": "thump",
       "shake_power": 4.0,
       "shake_duration": 0.18
+    },
+    "false_exit_chase": {
+      "delay": 0.00,
+      "fade_in": 0.10,
+      "hold": 0.62,
+      "fade_out": 0.22,
+      "center": [0.50, 0.56],
+      "height": 1.22,
+      "alpha": 0.76,
+      "caption": "",
+      "sound": "sting",
+      "shake_power": 12.0,
+      "shake_duration": 0.50
     }
   },
   "rooms": {
@@ -184,7 +210,7 @@
     },
     "false_exit_room": {
       "image": "res://assets/images/bg_false_exit_room.png",
-      "caption": "나간 줄 알았다. 벽지가 다시 이어진다.",
+      "caption": "",
       "hotspots": []
     }
   }
