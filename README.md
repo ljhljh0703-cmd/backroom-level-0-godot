@@ -19,5 +19,6 @@ The current creature sprite is a placeholder. Replace `assets/images/creature.pn
 
 ## Development Notes
 
+- [GDD](docs/GDD.md): current game design draft.
 - [CodeGraph](docs/CODEGRAPH.md): code/data map for efficient edits.
 - [Progress](docs/PROGRESS.md): current decisions, enhancement direction, review log, and next work packet.
