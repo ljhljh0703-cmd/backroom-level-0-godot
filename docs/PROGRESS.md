@@ -23,8 +23,9 @@
 
 ## 현재 빌드
 
-- 플레이어블 배포 커밋: `183c17f`
-- 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=183c17f`
+- 플레이어블 소스 커밋: `66a9f3a`
+- GitHub Pages 배포 커밋: `2e43796`
+- 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=66a9f3a`
 - Godot: `4.6`
 - 배포 형식: GitHub Pages Web export
 - 현재 단계: v2 blockout implementation
@@ -177,6 +178,8 @@ v2 블록아웃 리뷰 질문:
 | `draft-v2` | STOP 뒤 공간 상태, 좌측 전등 버튼, 분리된 A/B 출구, 우측 판넬 단서 반영. |
 | `dev-req-v2` | GDD v2 승인 후 개발 요구사항 문서와 target CodeGraph 갱신. |
 | `setup-v2` | JSON 방 그래프, route validation, Godot headless QA, v2 블록아웃 구현. |
+| `66a9f3a` | v2 블록아웃 framework 구현. |
+| `2e43796` | v2 블록아웃 Web build 배포. |
 | `183c17f` | 상세 배경을 버리고 구조 검토용 블록아웃으로 전환. |
 | `acedfef` | reference-style 배경 시도. 이후 블록아웃 결정으로 대체됨. |
 | `866c9f9` | STOP 표지 갈림길 피드백과 첫 크리처 등장 지연 반영. |
