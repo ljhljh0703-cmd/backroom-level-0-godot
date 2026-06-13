@@ -91,13 +91,13 @@ func _test_a_ending() -> void:
 	game._reset_game()
 	await process_frame
 	await _click_norm(0.12, 0.55)
-	await _click_norm(0.45, 0.65)
 	await _click_norm(0.43, 0.54)
 	await _click_norm(0.50, 0.43)
 	await _click_norm(0.50, 0.90)
 	await _click_norm(0.50, 0.90)
 	await _click_norm(0.50, 0.10)
 	_expect_flag("stop_back_red_seen", true, "A red stop back seen")
+	_expect_flag("blood_trace_clicked", false, "A does not require blood trace")
 	await _click_norm(0.50, 0.50)
 	_expect_ending("A", "A true exit")
 
@@ -105,13 +105,10 @@ func _test_a_ending() -> void:
 func _test_b_ending() -> void:
 	game._reset_game()
 	await process_frame
-	await _click_norm(0.12, 0.55)
-	await _click_norm(0.43, 0.54)
-	await _click_norm(0.50, 0.43)
-	await _click_norm(0.50, 0.90)
-	await _click_norm(0.50, 0.90)
-	await _click_norm(0.50, 0.10)
-	await _click_norm(0.50, 0.50)
+	await _click_norm(0.82, 0.55)
+	await _click_norm(0.80, 0.45)
+	await _click_norm(0.88, 0.45)
+	await _click_norm(0.88, 0.45)
 	await _wait_seconds(0.25)
 	_expect_state("transition", "B blocked passage transition")
 	await _wait_seconds(1.4)

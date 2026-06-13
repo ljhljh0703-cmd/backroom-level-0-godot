@@ -27,7 +27,8 @@
     "attempt_exit"
   ],
   "event_targets": {
-    "attempt_exit": ["true_exit_room", "false_exit_room"]
+    "attempt_exit": ["true_exit_room"],
+    "right_door": ["false_exit_room"]
   },
   "transition_images": {
     "blocked_passage": "res://assets/images/bg_blocked_passage.png",
@@ -111,7 +112,7 @@
         "red": "res://assets/images/bg_stop_back_red.png"
       },
       "caption": "아무것도 보이지 않는다.",
-      "red_caption": "불길하다.",
+      "red_caption": "표지판 뒤가 밝아졌다.",
       "hotspots": [
         {
           "id": "back_to_fork",
@@ -123,7 +124,7 @@
           "id": "red_exit_gap",
           "rect": [0.365, 0.255, 0.270, 0.470],
           "event": "attempt_exit",
-          "prompt": "빛",
+          "prompt": "나아가기",
           "requires_flag": "light_switch_pressed"
         }
       ]

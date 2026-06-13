@@ -71,8 +71,8 @@ flowchart TD
 | `stop_back_seen_once` | `false` | `stop_back_space` 첫 진입 | 최초 진입/반복 진입 구분 |
 | `stop_back_reentry_armed` | `false` | `stop_back_space -> fork_stop` 이동 시 `true`, `fork_stop -> left/right` 이동 시 `false` | 연속 재진입 C 엔딩 |
 | `light_switch_pressed` | `false` | `left_switch_room` 버튼 클릭 | STOP 뒤 공간 붉은 상태 |
-| `stop_back_red_seen` | `false` | 버튼 작동 후 `stop_back_space` 진입 | A/B 출구 판정 |
-| `blood_trace_clicked` | `false` | `left_blood_path` 붉은 흔적 클릭 | A 엔딩 필수 단서 |
+| `stop_back_red_seen` | `false` | 버튼 작동 후 `stop_back_space` 진입 | A 출구 판정 |
+| `blood_trace_clicked` | `false` | `left_blood_path` 붉은 흔적 클릭 | 위험 신호/좌측 루트 단서. A 필수 조건에서는 제외. |
 | `panel_clue_clicked` | `false` | `right_panel_path` 인간형 판넬 클릭 | 우측 루트 위화감/크리처 노출 단서. A 필수 조건에서는 제외. |
 | `right_dead_end_seen` | `false` | `right_dead_end` 진입 | 복귀 시 판넬 소리 조건 |
 | `right_door_warning_seen` | `false` | `right_dead_end` 오른쪽 문 첫 클릭 | 문 재클릭 시 B 전환 |
@@ -107,7 +107,7 @@ flowchart TD
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
 | `back_to_fork` | `(0.300, 0.835, 0.400, 0.130)` | target `fork_stop` | `돌아가기` |
-| `red_exit_gap` | `(0.365, 0.255, 0.270, 0.470)` | event `attempt_exit` | `빛` |
+| `red_exit_gap` | `(0.365, 0.255, 0.270, 0.470)` | event `attempt_exit` | `나아가기` |
 
 `red_exit_gap`은 `light_switch_pressed == true`일 때만 활성화한다.
 
@@ -159,7 +159,7 @@ flowchart TD
 | `right_door` | `right_door_warning_seen == true` | `blocked_passage` 전환 후 B 엔딩. |
 | `floor_note` | `right_note_available == true` | 쪽지 화면 표시. 쪽지 화면 바깥 클릭 시 `right_note_read = true`, 0.5초 `note_flash` 이미지 표시. |
 | `dead_wall` | 항상 | 막다른 길 캡션. |
-| `attempt_exit` | `light_switch_pressed == true` | A/B 조건 판정. |
+| `attempt_exit` | `light_switch_pressed == true && stop_back_red_seen == true` | A 엔딩. |
 
 반복 클릭은 같은 정보를 길게 설명하지 말고 짧은 반복 캡션으로 처리한다.
 
@@ -180,8 +180,8 @@ flowchart TD
 
 | Ending | 조건 | 처리 |
 | --- | --- | --- |
-| A 진짜 출구 | `attempt_exit` 시 `light_switch_pressed && stop_back_red_seen && blood_trace_clicked` | `true_exit_room` 진입. 진짜 출구는 정면의 일반 문. |
-| B 탈출 후 백룸 | `attempt_exit` 시 A 조건 중 하나라도 부족 | 추격 beat 후 `false_exit_room` 진입. 방은 시작점처럼 보이지만 STOP 표지판만 가득하고 바닥 문이 있다. |
+| A 진짜 출구 | `attempt_exit` 시 `light_switch_pressed && stop_back_red_seen` | `true_exit_room` 진입. 스위치 작동 후 밝아진 STOP 뒤 공간이 진짜 출구로 이어진다. |
+| B 탈출 후 백룸 | `right_dead_end` 오른쪽 문 경고를 무시하고 다시 문 클릭 | 추격 beat 후 `false_exit_room` 진입. 방은 시작점처럼 보이지만 STOP 표지판만 가득하고 바닥 문이 있다. |
 | C 크리처에게 잡힘 | STOP 뒤 공간 연속 재진입 | 즉시 C 엔딩. |
 
 B 엔딩의 v2.2 연출:

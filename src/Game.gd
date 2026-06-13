@@ -968,7 +968,7 @@ func _show_blocked_passage_transition() -> void:
 
 
 func _has_true_exit_requirements() -> bool:
-	return bool(flags["light_switch_pressed"]) and bool(flags["stop_back_red_seen"]) and bool(flags["blood_trace_clicked"])
+	return bool(flags["light_switch_pressed"]) and bool(flags["stop_back_red_seen"])
 
 
 func _show_ending(id: String) -> void:
