@@ -17,6 +17,7 @@ SOURCE = ROOT / "assets" / "source"
 HUMAN_PANEL_CUTOUT = SOURCE / "human_panel_cutout.png"
 FORK_STOP_REFERENCE = SOURCE / "fork_stop_reference.png"
 LEFT_BLOOD_PATH_REFERENCE = SOURCE / "left_blood_path_reference.png"
+LEFT_SWITCH_ROOM_REFERENCE = SOURCE / "left_switch_room_reference.png"
 W, H = 1280, 720
 
 # Current visual mode is a polished placeholder: positions stay readable, but
@@ -393,6 +394,9 @@ def scene_left_blood_path() -> Image.Image:
 
 
 def scene_left_switch_room() -> Image.Image:
+    if LEFT_SWITCH_ROOM_REFERENCE.exists():
+        return cover_reference(LEFT_SWITCH_ROOM_REFERENCE)
+
     img, draw = blockout_room("BLOCKOUT: LEFT_SWITCH_ROOM")
     draw.rectangle((520, 250, 760, 475), fill=(70, 64, 48), outline=LINE, width=4)
     draw.rectangle((576, 305, 704, 420), fill=(19, 17, 14), outline=HOT, width=5)
