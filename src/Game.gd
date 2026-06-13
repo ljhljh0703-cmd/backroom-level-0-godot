@@ -9,6 +9,7 @@ const ROOM_RIGHT_DEAD_END := "right_dead_end"
 const ROOM_TRUE_EXIT := "true_exit_room"
 const ROOM_FALSE_EXIT := "false_exit_room"
 const DEV_LOGGING := false
+const REVIEW_HOLD_SCREEN := true
 const UI_FONT := preload("res://assets/fonts/NotoSansKR-Regular.ttf")
 
 const FLAG_DEFAULTS := {
@@ -55,6 +56,7 @@ var click_feedback: ColorRect
 var black_fade: ColorRect
 var caption_label: Label
 var prompt_label: Label
+var hold_label: Label
 var debug_layer: Control
 var hum_player: AudioStreamPlayer
 var sfx_player: AudioStreamPlayer
@@ -72,6 +74,9 @@ func _ready() -> void:
 	_load_room_config()
 	_build_nodes()
 	_load_assets()
+	if REVIEW_HOLD_SCREEN:
+		_show_review_hold_screen()
+		return
 	_reset_game()
 	set_process(true)
 
@@ -189,6 +194,14 @@ func _build_nodes() -> void:
 	prompt_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	add_child(prompt_label)
 
+	hold_label = _make_label(28, Color(0.86, 0.82, 0.68), 2)
+	hold_label.name = "ReviewHold"
+	hold_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hold_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hold_label.visible = false
+	add_child(hold_label)
+
 	debug_layer = Control.new()
 	debug_layer.name = "DebugHotspots"
 	debug_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -238,6 +251,28 @@ func _load_assets() -> void:
 		hum.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	hum_player.stream = hum
 	sting_player.stream = sting_sound
+
+
+func _show_review_hold_screen() -> void:
+	game_state = "hold"
+	room_id = ""
+	background.texture = null
+	background.visible = false
+	creature.visible = false
+	foreground.visible = false
+	noise.visible = false
+	vignette.visible = false
+	threat_tint.color.a = 0.0
+	flash_rect.color.a = 0.0
+	black_fade.color = Color(0, 0, 0, 1)
+	caption_label.text = ""
+	prompt_label.text = ""
+	debug_layer.visible = false
+	hold_label.text = "화면 및 에셋 컨펌 대기 중"
+	hold_label.visible = true
+	if hum_player.playing:
+		hum_player.stop()
+	_publish_state("review_hold")
 
 
 func _reset_game() -> void:
@@ -301,6 +336,8 @@ func _process(delta: float) -> void:
 
 
 func _handle_click(screen_pos: Vector2) -> void:
+	if game_state == "hold":
+		return
 	if input_cooldown > 0.0:
 		return
 	input_cooldown = 0.10
