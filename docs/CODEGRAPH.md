@@ -74,7 +74,7 @@ flowchart TD
 | 우측 복귀 크리처 등장 타이밍 변경 | `data/rooms.json`의 `creature_beats.right_return_peek` | `_show_stop_sign_creature_peek()` |
 | 이후 크리처 접근감 변경 | `data/rooms.json`의 `creature_beats` | `_show_creature_beat()`와 엔딩 연출 |
 | B 엔딩 전 길목 차단 frame 변경 | `data/rooms.json`의 `transition_images.blocked_passage`, `tools/generate_assets.py`의 `scene_blocked_passage()` | `_show_blocked_passage_transition()` |
-| 엔딩 분기 변경 | `_attempt_exit()`, `_show_ending()` | `data/rooms.json`의 `event_targets.attempt_exit` |
+| 엔딩 분기 변경 | `_attempt_exit()`, `_show_ending()` | `data/rooms.json`의 `stop_back_space.red_exit_gap`, `true_exit_room.true_exit_door` |
 | 전체 시각 스타일 변경 | `tools/generate_assets.py`의 상수/그리기 함수 | `assets/images/*.png` 재생성 |
 | 최종 이미지 교체 | `assets/images/*.png` 파일 교체 | 파일명을 유지하면 `data/rooms.json` 수정 불필요 |
 
@@ -84,8 +84,8 @@ flowchart TD
 flowchart LR
     fork_stop["fork_stop\nSTOP 갈림길"] --> stop_back_space["stop_back_space\n어두운/붉은 STOP 뒤 공간"]
     stop_back_space --> fork_stop
-    stop_back_space --> true_exit_room["true_exit_room\nA 엔딩"]
-    stop_back_space --> false_exit_room["false_exit_room\nB 엔딩"]
+    stop_back_space --> true_exit_room["true_exit_room\n진짜 출구 방"]
+    true_exit_room -. "문 클릭" .-> ending_a["A 엔딩"]
 
     fork_stop --> left_blood_path["left_blood_path\n붉은 흔적"]
     left_blood_path --> left_switch_room["left_switch_room\n전등 버튼"]
@@ -112,8 +112,8 @@ GDD v2 승인 후 구현 목표 그래프다. 상세 조건은 `docs/DEV_REQUIRE
 flowchart TD
     fork_stop["fork_stop\nSTOP 갈림길"] --> stop_back_space["stop_back_space\n어두운/붉은 STOP 뒤 공간"]
     stop_back_space --> fork_stop
-    stop_back_space --> true_exit_room["true_exit_room\nA 엔딩"]
-    stop_back_space --> false_exit_room["false_exit_room\nB 엔딩"]
+    stop_back_space --> true_exit_room["true_exit_room\n진짜 출구 방"]
+    true_exit_room -. "문 클릭" .-> ending_a["A 엔딩"]
 
     fork_stop --> left_blood_path["left_blood_path\n붉은 흔적"]
     left_blood_path --> left_switch_room["left_switch_room\n전등 버튼"]
@@ -147,8 +147,8 @@ v2 상태:
 | --- | --- | --- |
 | STOP 뒤 연속 재진입 | `stop_back_reentry_armed` | `fork_stop -> stop_back_space -> fork_stop -> stop_back_space` C 엔딩 판정. |
 | 좌측 버튼 | `light_switch_pressed` | STOP 뒤 공간을 붉은 상태로 바꿈. |
-| 붉은 STOP 뒤 확인 | `stop_back_red_seen` | A/B 출구 판정에 사용. |
-| 붉은 흔적 단서 | `blood_trace_clicked` | A 엔딩 필수 단서. |
+| 붉은 STOP 뒤 확인 | `stop_back_red_seen` | `true_exit_room` 진입 후 문 클릭 A 판정에 사용. |
+| 붉은 흔적 단서 | `blood_trace_clicked` | 위험 신호/좌측 루트 단서. A 엔딩 필수 조건에서는 제외. |
 | 인간형 판넬 단서 | `panel_clue_clicked` | 우측 루트 위화감/크리처 노출 단서. A 엔딩 필수 조건에서는 제외. |
 | 우측 막다른 길 방문 | `right_dead_end_seen` | 복귀 판넬 소리와 크리처 1초 등장 조건. |
 | 판넬 소리 1회 제한 | `panel_sound_played` | 우측 복귀 사운드 중복 방지. |

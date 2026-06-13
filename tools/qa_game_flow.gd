@@ -103,6 +103,11 @@ func _test_a_ending() -> void:
 	_expect_flag("stop_back_red_seen", true, "A red stop back seen")
 	_expect_flag("blood_trace_clicked", false, "A does not require blood trace")
 	await _click_norm(0.50, 0.50)
+	_expect_state("play", "A true exit room stays playable")
+	_expect_room("true_exit_room", "A true exit room before ending")
+	if not "true_exit_door" in game._active_hotspot_ids():
+		failures.append("A route: true_exit_door hotspot should be active before A ending")
+	await _click_norm(0.65, 0.30)
 	_expect_ending("A", "A true exit")
 
 

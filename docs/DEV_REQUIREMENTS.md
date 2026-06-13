@@ -36,7 +36,7 @@
 | 4 | `left_switch_room` | 전등 버튼 방 | `bg_left_switch_room.png` |
 | 5 | `right_panel_path` | 인간형 판넬 길 | `bg_right_panel_path.png` |
 | 6 | `right_dead_end` | 막다른 길 | `bg_right_dead_end.png` |
-| 7 | `true_exit_room` | A 엔딩 방 | `bg_true_exit_room.png` |
+| 7 | `true_exit_room` | A 직전 진짜 출구 방 | `bg_true_exit_room.png` |
 | 8 | `false_exit_room` | B 엔딩 방: STOP 표지판만 가득한 시작점 변형 | `bg_false_exit_room.png` |
 
 엔딩 C는 별도 방이 아니라 즉시 결과 상태로 처리한다.
@@ -48,8 +48,8 @@
 flowchart TD
     fork["fork_stop\nSTOP 갈림길"] --> stopBack["stop_back_space\n어두운/붉은 공간"]
     stopBack --> fork
-    stopBack --> trueExit["true_exit_room\nA 진짜 출구"]
-    stopBack --> falseExit["false_exit_room\nB 가짜 출구"]
+    stopBack --> trueExit["true_exit_room\n진짜 출구 방"]
+    trueExit --> endingA["A 진짜 탈출"]
 
     fork --> leftPath["left_blood_path\n붉은 흔적"]
     leftPath --> leftSwitch["left_switch_room\n전등 버튼"]
@@ -60,6 +60,7 @@ flowchart TD
     rightPath --> rightDead["right_dead_end\n막다른 길"]
     rightDead --> rightPath
     rightPath --> fork
+    rightDead -. "오른쪽 문 재클릭" .-> falseExit["false_exit_room\nB 가짜 출구"]
 
     stopBack -. "연속 재진입" .-> caught["C 크리처에게 잡힘"]
 ```
@@ -109,7 +110,7 @@ flowchart TD
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
 | `back_to_fork` | `(0.300, 0.835, 0.400, 0.130)` | target `fork_stop` | `돌아가기` |
-| `red_exit_gap` | `(0.200, 0.120, 0.600, 0.650)` | event `attempt_exit` | `밝아진 공간` |
+| `red_exit_gap` | `(0.200, 0.120, 0.600, 0.650)` | target `true_exit_room` | `밝아진 공간` |
 
 `red_exit_gap`은 `light_switch_pressed == true`일 때만 활성화한다.
 
@@ -147,7 +148,12 @@ flowchart TD
 
 ### Ending Rooms
 
-`true_exit_room`과 `false_exit_room`은 결과 표시 후 엔딩 UI 버튼을 띄운다. `재시작`은 로비 화면으로 돌아가고, `종료`는 종료 상태 화면으로 전환한다. 추가 room hotspot은 두지 않는다.
+`true_exit_room`은 A 엔딩 직전 마지막 방으로 사용한다. 밝아진 STOP 뒤 공간에서 진입한 뒤, 방 안의 문을 클릭해야 A 엔딩 UI가 뜬다.
+`false_exit_room`은 B 결과 표시 후 엔딩 UI 버튼을 띄운다. `재시작`은 로비 화면으로 돌아가고, `종료`는 종료 상태 화면으로 전환한다.
+
+| ID | Rect | Action | Prompt |
+| --- | --- | --- | --- |
+| `true_exit_door` | `(0.590, 0.155, 0.120, 0.320)` | event `attempt_exit` | `문` |
 
 ## 6. Event Rules
 
@@ -161,7 +167,7 @@ flowchart TD
 | `right_door` | `right_door_warning_seen == true` | `blocked_passage` 전환 후 B 엔딩. |
 | `floor_note` | `right_note_available == true` | 쪽지 화면 표시. 쪽지 화면 바깥 클릭 시 `right_note_read = true`, 0.5초 `note_flash` 이미지 표시. |
 | `dead_wall` | 항상 | 막다른 길 캡션. |
-| `attempt_exit` | `light_switch_pressed == true && stop_back_red_seen == true` | A 엔딩. |
+| `attempt_exit` | `true_exit_room`의 문 클릭, `light_switch_pressed == true && stop_back_red_seen == true` | A 엔딩. |
 
 반복 클릭은 같은 정보를 길게 설명하지 말고 짧은 반복 캡션으로 처리한다.
 
@@ -182,7 +188,7 @@ flowchart TD
 
 | Ending | 조건 | 처리 |
 | --- | --- | --- |
-| A 진짜 출구 | `attempt_exit` 시 `light_switch_pressed && stop_back_red_seen` | `true_exit_room` 진입. 스위치 작동 후 밝아진 STOP 뒤 공간이 진짜 출구로 이어진다. |
+| A 진짜 출구 | 밝아진 STOP 뒤 공간에서 `true_exit_room` 진입 후 문 클릭 | A 엔딩. 스위치 작동 후 밝아진 STOP 뒤 공간이 진짜 출구 방으로 이어지고, 문을 눌러야 탈출한다. |
 | B 탈출 후 백룸 | `right_dead_end` 오른쪽 문 경고를 무시하고 다시 문 클릭 | 추격 beat 후 `false_exit_room` 진입. 방은 시작점처럼 보이지만 STOP 표지판만 가득하고 바닥 문이 있다. |
 | C 크리처에게 잡힘 | STOP 뒤 공간 연속 재진입 | 즉시 C 엔딩. |
 
@@ -234,8 +240,8 @@ B 엔딩의 v2.2 연출:
 - 우측 막다른 길에서 돌아오면 판넬 소리가 1회만 난다.
 - 우측 루트 후 `fork_stop` 복귀 시 크리처가 STOP 뒤에 1초만 나타난다.
 - `blood_trace`, `human_panel`, `light_switch`가 클릭 가능한 단서/트리거로 작동한다.
-- 필요한 단서를 모두 얻은 뒤 붉은 STOP 뒤 공간에서 출구를 누르면 A 엔딩이다.
-- 단서가 부족한 상태에서 같은 출구를 누르면 B 엔딩이다.
+- 필요한 단서를 모두 얻은 뒤 붉은 STOP 뒤 공간에서 밝아진 공간을 누르면 `true_exit_room`에 들어간다.
+- `true_exit_room`의 문을 클릭해야 A 엔딩이다.
 - B 엔딩 전 `blocked_passage` transition frame이 나온 뒤 크리처 추격 beat가 이어져야 한다.
 - `right_dead_end`에서 오른쪽 문을 누르면 `blocked_passage` transition frame이 나온 뒤 B 엔딩으로 이어진다.
 - A 엔딩은 판넬 클릭 없이도 가능해야 한다.

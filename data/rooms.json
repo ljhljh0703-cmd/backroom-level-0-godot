@@ -27,7 +27,6 @@
     "attempt_exit"
   ],
   "event_targets": {
-    "attempt_exit": ["true_exit_room"],
     "right_door": ["false_exit_room"]
   },
   "transition_images": {
@@ -125,7 +124,7 @@
         {
           "id": "red_exit_gap",
           "rect": [0.200, 0.120, 0.600, 0.650],
-          "event": "attempt_exit",
+          "target": "true_exit_room",
           "prompt": "밝아진 공간",
           "requires_flag": "light_switch_pressed"
         }
@@ -232,7 +231,14 @@
     "true_exit_room": {
       "image": "res://assets/images/bg_true_exit_room.png",
       "caption": "나갈 수 있을 것 같다.",
-      "hotspots": []
+      "hotspots": [
+        {
+          "id": "true_exit_door",
+          "rect": [0.590, 0.155, 0.120, 0.320],
+          "event": "attempt_exit",
+          "prompt": "문"
+        }
+      ]
     },
     "false_exit_room": {
       "image": "res://assets/images/bg_false_exit_room.png",
