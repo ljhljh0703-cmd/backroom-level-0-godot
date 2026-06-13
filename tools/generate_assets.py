@@ -19,6 +19,7 @@ FORK_STOP_REFERENCE = SOURCE / "fork_stop_reference.png"
 LEFT_BLOOD_PATH_REFERENCE = SOURCE / "left_blood_path_reference.png"
 LEFT_SWITCH_ROOM_REFERENCE = SOURCE / "left_switch_room_reference.png"
 RIGHT_PANEL_PATH_REFERENCE = SOURCE / "right_panel_path_reference.png"
+RIGHT_DEAD_END_REFERENCE = SOURCE / "right_dead_end_reference.png"
 W, H = 1280, 720
 
 # Current visual mode is a polished placeholder: positions stay readable, but
@@ -416,6 +417,9 @@ def scene_right_panel_path() -> Image.Image:
 
 
 def scene_right_dead_end() -> Image.Image:
+    if RIGHT_DEAD_END_REFERENCE.exists():
+        return cover_reference(RIGHT_DEAD_END_REFERENCE)
+
     img, draw = blockout_room("BLOCKOUT: RIGHT_DEAD_END")
     draw.rectangle((360, 200, 920, 610), fill=(92, 86, 59), outline=LINE, width=5)
     for x in range(390, 900, 78):
