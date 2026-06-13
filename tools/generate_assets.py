@@ -221,67 +221,71 @@ def draw_review_light(draw: ImageDraw.ImageDraw, points: list[tuple[int, int]]) 
 
 
 def scene_fork_stop_review_candidate() -> Image.Image:
-    img = Image.new("RGB", (W, H), (35, 30, 20))
+    img = Image.new("RGB", (W, H), (36, 31, 20))
     draw = ImageDraw.Draw(img)
-    vp = (640, 338)
+    vp = (640, 332)
 
-    ceiling = [(0, 0), (1280, 0), (1104, 224), (842, 300), (438, 300), (176, 224)]
-    floor = [(0, 720), (1280, 720), (850, 448), (430, 448)]
-    left_wall = [(0, 0), (176, 224), (430, 448), (0, 720)]
-    right_wall = [(1280, 0), (1104, 224), (850, 448), (1280, 720)]
-    far_wall = [(438, 300), (842, 300), (850, 448), (430, 448)]
+    ceiling = [(0, 0), (1280, 0), (1280, 150), (930, 238), (350, 238), (0, 150)]
+    floor = [(0, 720), (1280, 720), (930, 482), (350, 482)]
+    left_near_wall = [(0, 0), (82, 0), (160, 238), (350, 482), (0, 720)]
+    right_near_wall = [(1198, 0), (1280, 0), (1280, 720), (930, 482), (1120, 238)]
+    far_wall = [(350, 238), (930, 238), (930, 482), (350, 482)]
 
-    draw.polygon(ceiling, fill=(150, 138, 105))
-    draw.polygon(left_wall, fill=(124, 101, 56))
-    draw.polygon(right_wall, fill=(105, 85, 48))
-    draw.polygon(floor, fill=(78, 65, 41))
-    draw.polygon(far_wall, fill=(110, 89, 52))
+    draw.polygon(ceiling, fill=(152, 143, 112))
+    draw.polygon(floor, fill=(77, 65, 42))
+    draw.polygon(left_near_wall, fill=(116, 93, 53))
+    draw.polygon(right_near_wall, fill=(100, 80, 47))
+    draw.polygon(far_wall, fill=(112, 91, 54))
 
-    for offset in [232, 382, 520, 676, 830, 982]:
-        draw.polygon([(offset - 42, 300), (offset + 34, 300), (offset + 18, 448), (offset - 62, 448)], fill=(126, 105, 61))
-    draw.polygon([(0, 0), (112, 0), (176, 224), (0, 320)], fill=(104, 83, 45))
-    draw.polygon([(1168, 0), (1280, 0), (1280, 340), (1104, 224)], fill=(86, 69, 40))
+    # Side openings: the front path is closed by the STOP wall, while routes continue left and right.
+    left_opening = [(158, 238), (350, 238), (350, 482), (0, 660), (0, 406)]
+    right_opening = [(930, 238), (1122, 238), (1280, 406), (1280, 660), (930, 482)]
+    draw.polygon(left_opening, fill=(18, 16, 11))
+    draw.polygon(right_opening, fill=(11, 10, 8))
+    draw.polygon([(0, 416), (222, 306), (350, 482), (0, 658)], fill=(92, 76, 44))
+    draw.polygon([(1280, 416), (1058, 306), (930, 482), (1280, 658)], fill=(72, 59, 36))
+    draw.polygon([(58, 302), (224, 274), (222, 438), (28, 570)], fill=(128, 108, 64))
+    draw.polygon([(1056, 274), (1222, 302), (1252, 570), (1058, 438)], fill=(105, 87, 52))
 
-    for x in range(-120, 1400, 80):
-        draw.line((x, 0, vp[0], vp[1]), fill=(114, 105, 83), width=2)
-    for y in range(34, 286, 34):
-        draw.line((0, y, 1280, y), fill=(118, 108, 82), width=2)
-    for x in range(-80, 1380, 95):
-        draw.line((x, 720, vp[0], 448), fill=(88, 76, 50), width=1)
-    for y in range(480, 720, 30):
-        draw.line((0, y, 1280, y), fill=(87, 75, 49), width=1)
+    # Central end wall is intentionally closed; the sign blocks forward progress.
+    draw.rectangle((506, 282, 774, 446), fill=(104, 84, 50), outline=(78, 63, 38), width=3)
+    draw.rectangle((588, 360, 692, 420), fill=(28, 24, 17), outline=(74, 64, 45), width=4)
 
-    draw_review_light(draw, [(574, -16), (706, -16), (730, 132), (550, 132)])
-    draw_review_light(draw, [(606, 212), (674, 212), (684, 250), (596, 250)])
-    draw_review_light(draw, [(620, 278), (660, 278), (666, 298), (614, 298)])
-    draw_review_light(draw, [(382, 228), (492, 250), (474, 282), (350, 256)])
-    draw_review_light(draw, [(892, 248), (1006, 224), (1032, 252), (906, 282)])
+    for x in range(-60, 1360, 80):
+        draw.line((x, 0, vp[0], vp[1]), fill=(115, 106, 82), width=2)
+    for y in range(36, 222, 34):
+        draw.line((0, y, 1280, y), fill=(120, 111, 86), width=2)
+    for x in range(-80, 1380, 96):
+        draw.line((x, 720, vp[0], 482), fill=(88, 76, 50), width=1)
+    for y in range(506, 720, 30):
+        draw.line((0, y, 1280, y), fill=(88, 76, 50), width=1)
+    for x in [350, 506, 774, 930]:
+        draw.line((x, 238, x, 482), fill=(85, 68, 40), width=2)
 
-    cavity_outer = [(482, 300), (798, 300), (836, 442), (444, 442)]
-    cavity_inner = [(526, 324), (754, 324), (778, 426), (502, 426)]
-    draw.polygon(cavity_outer, fill=(48, 40, 28), outline=(94, 76, 50))
-    draw.polygon([(482, 300), (526, 324), (502, 426), (444, 442)], fill=(34, 28, 21))
-    draw.polygon([(798, 300), (754, 324), (778, 426), (836, 442)], fill=(28, 23, 18))
-    draw.polygon(cavity_inner, fill=(0, 0, 0))
+    draw_review_light(draw, [(584, -12), (696, -12), (710, 112), (570, 112)])
+    draw_review_light(draw, [(600, 160), (680, 160), (690, 198), (590, 198)])
+    draw_review_light(draw, [(610, 226), (670, 226), (676, 250), (604, 250)])
+    draw_review_light(draw, [(242, 252), (356, 248), (344, 282), (222, 286)])
+    draw_review_light(draw, [(924, 248), (1038, 252), (1058, 286), (936, 282)])
 
     blood = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     blood_draw = ImageDraw.Draw(blood)
     rng = random.Random(913)
-    trail = [(34, 672), (122, 650), (228, 648), (332, 623), (454, 600), (560, 604)]
+    trail = [(26, 676), (120, 652), (220, 632), (312, 588), (388, 526), (426, 468)]
     blood_draw.line(trail, fill=(55, 0, 0, 215), width=42, joint="curve")
     blood_draw.line(trail, fill=(124, 6, 5, 230), width=25, joint="curve")
     for _ in range(36):
-        x = rng.randint(36, 560)
-        y = rng.randint(596, 704)
+        x = rng.randint(24, 430)
+        y = rng.randint(516, 704)
         rx = rng.randint(5, 28)
         ry = rng.randint(2, 12)
         blood_draw.ellipse((x - rx, y - ry, x + rx, y + ry), fill=(98, 0, 0, rng.randint(110, 225)))
     img = Image.alpha_composite(img.convert("RGBA"), blood.filter(ImageFilter.GaussianBlur(0.8))).convert("RGB")
     draw = ImageDraw.Draw(img)
 
-    stop_sign_shape(draw, 640, 286, 80, (116, 20, 17))
-    draw.rectangle((632, 364, 648, 536), fill=(70, 61, 40))
-    draw.rectangle((598, 524, 682, 552), fill=(62, 52, 35))
+    draw.rectangle((633, 368, 647, 548), fill=(70, 61, 40))
+    draw.rectangle((596, 536, 684, 566), fill=(62, 52, 35))
+    stop_sign_shape(draw, 640, 286, 82, (116, 20, 17))
 
     vign = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     vign_draw = ImageDraw.Draw(vign)
