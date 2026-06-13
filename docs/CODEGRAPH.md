@@ -67,7 +67,7 @@ flowchart TD
 | 방 이동 조건 변경 | `_go_to_room()` | `data/rooms.json`의 hotspot target |
 | 우측 복귀 크리처 등장 타이밍 변경 | `data/rooms.json`의 `creature_beats.right_return_peek` | `_show_stop_sign_creature_peek()` |
 | 이후 크리처 접근감 변경 | `data/rooms.json`의 `creature_beats` | `_show_creature_beat()`와 엔딩 연출 |
-| B 엔딩 전 길목 차단 frame 변경 | `data/rooms.json`의 `transition_images.blocked_passage`, `tools/generate_assets.py`의 `scene_blocked_passage()` | `_attempt_exit()` |
+| B 엔딩 전 길목 차단 frame 변경 | `data/rooms.json`의 `transition_images.blocked_passage`, `tools/generate_assets.py`의 `scene_blocked_passage()` | `_show_blocked_passage_transition()` |
 | 엔딩 분기 변경 | `_attempt_exit()`, `_show_ending()` | `data/rooms.json`의 `event_targets.attempt_exit` |
 | 전체 시각 스타일 변경 | `tools/generate_assets.py`의 상수/그리기 함수 | `assets/images/*.png` 재생성 |
 | 최종 이미지 교체 | `assets/images/*.png` 파일 교체 | 파일명을 유지하면 `data/rooms.json` 수정 불필요 |
@@ -89,6 +89,8 @@ flowchart LR
     fork_stop --> right_panel_path["right_panel_path\n인간형 판넬"]
     right_panel_path --> right_dead_end["right_dead_end\n막다른 길"]
     right_dead_end --> right_panel_path
+    right_dead_end -. "오른쪽 문" .-> blocked_passage["blocked_passage\n전환 화면"]
+    blocked_passage -. "크리처 추격" .-> false_exit_room
     right_panel_path --> fork_stop
 
     stop_back_space -. "연속 재진입" .-> ending_c["C 엔딩"]
@@ -115,6 +117,8 @@ flowchart TD
     fork_stop --> right_panel_path["right_panel_path\n인간형 판넬"]
     right_panel_path --> right_dead_end["right_dead_end\n막다른 길"]
     right_dead_end --> right_panel_path
+    right_dead_end -. "오른쪽 문" .-> blocked_passage["blocked_passage\n전환 화면"]
+    blocked_passage -. "크리처 추격" .-> false_exit_room
     right_panel_path --> fork_stop
 
     stop_back_space -. "연속 재진입" .-> ending_c["C 엔딩"]
@@ -159,6 +163,7 @@ flowchart LR
 - `tools/validate_routes.py`: 8개 방, 이미지, target, event, flag 검증.
 - `tools/qa_game_flow.gd`: C 연속 재진입, A 진짜 출구, B 가짜 출구 루트 검증.
 - B 루트 QA는 `blocked_passage` transition 상태를 거친 뒤 `false_exit_room`으로 들어가는지 확인한다.
+- 우측 막다른 길 QA는 `right_dead_end`의 오른쪽 문 클릭이 `blocked_passage` transition을 거쳐 B 엔딩으로 이어지는지 확인한다.
 
 ## Asset Pipeline
 

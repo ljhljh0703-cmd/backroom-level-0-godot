@@ -496,6 +496,9 @@ func _handle_event(event_name: String) -> void:
 	if event_name == "attempt_exit":
 		_attempt_exit()
 		return
+	if event_name == "blocked_passage":
+		_show_blocked_passage_transition()
+		return
 
 	if clicked_events.has(event_name):
 		_flash_caption(_repeat_event_line(event_name))
@@ -550,6 +553,10 @@ func _attempt_exit() -> void:
 	if _has_true_exit_requirements():
 		_show_ending("A")
 		return
+	_show_blocked_passage_transition()
+
+
+func _show_blocked_passage_transition() -> void:
 	game_state = "transition"
 	caption_label.text = "뒤가 막혔다."
 	prompt_label.text = ""

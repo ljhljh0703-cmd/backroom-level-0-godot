@@ -18,6 +18,7 @@ func _run() -> void:
 
 	await _test_c_ending()
 	await _test_right_route_peek()
+	await _test_right_dead_end_door_block()
 	await _test_a_ending()
 	await _test_b_ending()
 
@@ -86,6 +87,20 @@ func _test_right_route_peek() -> void:
 	await _wait_seconds(1.1)
 	_expect_flag("panel_clue_clicked", true, "right panel clue")
 	_expect_flag("creature_peek_seen", true, "right return creature peek")
+
+
+func _test_right_dead_end_door_block() -> void:
+	game._reset_game()
+	await process_frame
+	await _click_norm(0.82, 0.55)
+	await _click_norm(0.80, 0.45)
+	_expect_room("right_dead_end", "blocked door start")
+	await _click_norm(0.88, 0.45)
+	await _wait_seconds(0.25)
+	_expect_state("transition", "right dead end door blocked passage")
+	await _wait_seconds(1.4)
+	_expect_ending("B", "right dead end door B ending")
+	_expect_room("false_exit_room", "right dead end door stop sign room")
 
 
 func _click_norm(x: float, y: float) -> void:

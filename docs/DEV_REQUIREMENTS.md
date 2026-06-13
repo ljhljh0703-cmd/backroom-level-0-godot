@@ -137,6 +137,7 @@ flowchart TD
 | --- | --- | --- | --- |
 | `dead_wall` | `(0.335, 0.210, 0.330, 0.500)` | event `dead_wall` | `벽` |
 | `back_panel_path` | `(0.000, 0.100, 0.300, 0.800)` | target `right_panel_path` | `돌아가기` |
+| `blocked_right_door` | `(0.780, 0.160, 0.200, 0.700)` | event `blocked_passage` | `문` |
 
 ### Ending Rooms
 
@@ -227,6 +228,7 @@ B 엔딩의 v2.2 연출:
 - 필요한 단서를 모두 얻은 뒤 붉은 STOP 뒤 공간에서 출구를 누르면 A 엔딩이다.
 - 단서가 부족한 상태에서 같은 출구를 누르면 B 엔딩이다.
 - B 엔딩 전 `blocked_passage` transition frame이 나온 뒤 크리처 추격 beat가 이어져야 한다.
+- `right_dead_end`에서 오른쪽 문을 누르면 `blocked_passage` transition frame이 나온 뒤 B 엔딩으로 이어진다.
 - A 엔딩은 판넬 클릭 없이도 가능해야 한다.
 - B 엔딩 방은 상호작용 없는 STOP 표지판 방이어야 한다.
 - debug overlay로 각 hotspot을 화면에서 확인할 수 있다.
