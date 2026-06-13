@@ -6,12 +6,14 @@ import wave
 from array import array
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGES = ROOT / "assets" / "images"
 AUDIO = ROOT / "assets" / "audio"
+SOURCE = ROOT / "assets" / "source"
+HUMAN_PANEL_CUTOUT = SOURCE / "human_panel_cutout.png"
 W, H = 1280, 720
 
 # Current visual mode is a polished placeholder: positions stay readable, but
@@ -113,6 +115,50 @@ def doorway(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], label: st
     x1, y1, x2, y2 = box
     draw.rectangle((x1 - 12, y1 - 12, x2 + 12, y2 + 12), fill=(84, 76, 54), outline=LINE, width=3)
     draw.rectangle(box, fill=DARK)
+
+
+def paste_human_panel(img: Image.Image, box: tuple[int, int, int, int]) -> Image.Image:
+    if not HUMAN_PANEL_CUTOUT.exists():
+        return img
+
+    panel = Image.open(HUMAN_PANEL_CUTOUT).convert("RGBA")
+    bbox = panel.getbbox()
+    if bbox is None:
+        return img
+    panel = panel.crop(bbox)
+
+    x1, y1, x2, y2 = box
+    max_w = x2 - x1
+    max_h = y2 - y1
+    scale = min(max_w / panel.width, max_h / panel.height)
+    size = (max(1, int(panel.width * scale)), max(1, int(panel.height * scale)))
+    panel = panel.resize(size, Image.Resampling.LANCZOS)
+
+    rgb = panel.convert("RGB")
+    rgb = ImageEnhance.Color(rgb).enhance(0.78)
+    rgb = ImageEnhance.Contrast(rgb).enhance(0.88)
+    rgb = ImageEnhance.Brightness(rgb).enhance(0.70)
+    alpha = panel.getchannel("A")
+    panel = rgb.convert("RGBA")
+    panel.putalpha(alpha)
+
+    canvas = img.convert("RGBA")
+    x = x1 + (max_w - panel.width) // 2
+    y = y2 - panel.height
+
+    backing_alpha = alpha.filter(ImageFilter.MaxFilter(9))
+    backing = Image.new("RGBA", panel.size, (48, 43, 31, 0))
+    backing.putalpha(backing_alpha.point(lambda value: min(210, value)))
+    shadow = Image.new("RGBA", panel.size, (0, 0, 0, 0))
+    shadow.putalpha(alpha.filter(ImageFilter.GaussianBlur(5)).point(lambda value: int(value * 0.45)))
+
+    base = ImageDraw.Draw(canvas)
+    base.rectangle((x + 78, y + panel.height - 12, x + panel.width - 72, y + panel.height + 18), fill=(40, 34, 22, 220))
+    base.rectangle((x + 105, y + panel.height - 44, x + panel.width - 102, y + panel.height + 8), fill=(27, 23, 16, 190))
+    canvas.alpha_composite(shadow, (x + 8, y + 7))
+    canvas.alpha_composite(backing, (x - 4, y + 3))
+    canvas.alpha_composite(panel, (x, y))
+    return canvas.convert("RGB")
 
 
 def arrow_path(draw: ImageDraw.ImageDraw, side: str, label: str) -> None:
@@ -242,14 +288,7 @@ def scene_left_switch_room() -> Image.Image:
 def scene_right_panel_path() -> Image.Image:
     img, draw = blockout_room("BLOCKOUT: RIGHT_PANEL_PATH")
     doorway(draw, (870, 240, 1195, 610), "DEAD END")
-    draw.rectangle((510, 190, 710, 560), fill=(62, 62, 66), outline=LINE, width=4)
-    draw.ellipse((575, 230, 645, 300), fill=(12, 12, 14))
-    draw.rectangle((595, 298, 625, 430), fill=(12, 12, 14))
-    draw.line((595, 340, 548, 420), fill=(12, 12, 14), width=18)
-    draw.line((625, 340, 672, 420), fill=(12, 12, 14), width=18)
-    draw.line((603, 430, 570, 525), fill=(12, 12, 14), width=18)
-    draw.line((617, 430, 650, 525), fill=(12, 12, 14), width=18)
-    return img
+    return paste_human_panel(img, (500, 150, 770, 585))
 
 
 def scene_right_dead_end() -> Image.Image:

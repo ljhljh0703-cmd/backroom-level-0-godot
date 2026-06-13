@@ -67,6 +67,8 @@
 | 2026-06-13 | 개발용 hotspot overlay를 기본 OFF로 바꿨다. | 폴리싱 리뷰에서 디버그 박스가 분위기를 가리지 않게 하기 위해. |
 | 2026-06-13 | 블록아웃 영어 라벨을 제거하고 polished placeholder 톤으로 정리했다. | 동선은 유지하면서 최종 실사풍 전 단계의 몰입감을 올리기 위해. |
 | 2026-06-13 | Noto Sans KR UI 폰트를 포함했다. | Godot Web export에서 한국어 캡션이 네모 glyph로 깨지는 문제를 막기 위해. |
+| 2026-06-13 | 우측 인간형 판넬을 사용자 사진 기반 cutout으로 교체했다. | 평범한 길의 위화감을 placeholder 실루엣보다 구체적으로 만들기 위해. |
+| 2026-06-13 | 게임 내 텍스트 초안을 `docs/TEXT_DRAFTS.md`로 분리했다. | 사용자가 문구를 첨삭한 뒤 실제 캡션 데이터에 반영하기 위해. |
 
 ## 고도화 방향
 
@@ -156,6 +158,7 @@
 - `src/Game.gd`는 아직 단일 파일 프로토타입이다.
 - `data/rooms.json`이 현재 방 그래프와 hotspot의 중심이다.
 - 이미지는 `tools/generate_assets.py`로 생성한다.
+- 우측 판넬 cutout source는 `assets/source/human_panel_cutout.png`이고, `bg_right_panel_path.png`에 합성된다.
 - UI 캡션/프롬프트는 `assets/fonts/NotoSansKR-Regular.ttf`를 사용한다.
 - 현재 배경은 개발용 블록아웃 label을 제거한 polished placeholder다.
 - 현재 배포 빌드는 GDD v2의 8방 구조, v2.1 STOP 표지판 방/출구 조건 변경, v2.2 B 엔딩 전 길목 차단 frame, v2.3 polished placeholder와 한국어 UI 폰트를 포함한다.
