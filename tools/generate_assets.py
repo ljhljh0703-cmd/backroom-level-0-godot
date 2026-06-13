@@ -18,6 +18,7 @@ HUMAN_PANEL_CUTOUT = SOURCE / "human_panel_cutout.png"
 FORK_STOP_REFERENCE = SOURCE / "fork_stop_reference.png"
 LEFT_BLOOD_PATH_REFERENCE = SOURCE / "left_blood_path_reference.png"
 LEFT_SWITCH_ROOM_REFERENCE = SOURCE / "left_switch_room_reference.png"
+RIGHT_PANEL_PATH_REFERENCE = SOURCE / "right_panel_path_reference.png"
 W, H = 1280, 720
 
 # Current visual mode is a polished placeholder: positions stay readable, but
@@ -406,6 +407,9 @@ def scene_left_switch_room() -> Image.Image:
 
 
 def scene_right_panel_path() -> Image.Image:
+    if RIGHT_PANEL_PATH_REFERENCE.exists():
+        return cover_reference(RIGHT_PANEL_PATH_REFERENCE)
+
     img, draw = blockout_room("BLOCKOUT: RIGHT_PANEL_PATH")
     doorway(draw, (870, 240, 1195, 610), "DEAD END")
     return paste_human_panel(img, (500, 150, 770, 585))
