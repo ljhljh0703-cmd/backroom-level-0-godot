@@ -9,6 +9,7 @@ const ROOM_RIGHT_DEAD_END := "right_dead_end"
 const ROOM_TRUE_EXIT := "true_exit_room"
 const ROOM_FALSE_EXIT := "false_exit_room"
 const DEV_LOGGING := false
+const UI_FONT := preload("res://assets/fonts/NotoSansKR-Regular.ttf")
 
 const FLAG_DEFAULTS := {
 	"stop_back_seen_once": false,
@@ -213,6 +214,7 @@ func _build_nodes() -> void:
 func _make_label(font_size: int, color: Color, outline_size: int) -> Label:
 	var label := Label.new()
 	var settings := LabelSettings.new()
+	settings.font = UI_FONT
 	settings.font_size = font_size
 	settings.font_color = color
 	settings.outline_size = outline_size

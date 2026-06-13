@@ -66,6 +66,7 @@
 | 2026-06-13 | B 엔딩 전 `blocked_passage` transition frame을 추가했다. | 단서 부족 상태에서 플레이어가 가짜 출구를 자의로 고른 것이 아니라 길목이 막혀 내몰린 느낌을 주기 위해. |
 | 2026-06-13 | 개발용 hotspot overlay를 기본 OFF로 바꿨다. | 폴리싱 리뷰에서 디버그 박스가 분위기를 가리지 않게 하기 위해. |
 | 2026-06-13 | 블록아웃 영어 라벨을 제거하고 polished placeholder 톤으로 정리했다. | 동선은 유지하면서 최종 실사풍 전 단계의 몰입감을 올리기 위해. |
+| 2026-06-13 | Noto Sans KR UI 폰트를 포함했다. | Godot Web export에서 한국어 캡션이 네모 glyph로 깨지는 문제를 막기 위해. |
 
 ## 고도화 방향
 
@@ -155,6 +156,7 @@
 - `src/Game.gd`는 아직 단일 파일 프로토타입이다.
 - `data/rooms.json`이 현재 방 그래프와 hotspot의 중심이다.
 - 이미지는 `tools/generate_assets.py`로 생성한다.
+- UI 캡션/프롬프트는 `assets/fonts/NotoSansKR-Regular.ttf`를 사용한다.
 - 현재 배경은 개발용 블록아웃 label을 제거한 polished placeholder다.
 - 현재 배포 빌드는 GDD v2의 8방 구조, v2.1 STOP 표지판 방/출구 조건 변경, v2.2 B 엔딩 전 길목 차단 frame을 포함한다.
 - 기존 `hallway`, `junction`, `sign`, `door`, `other` 자산은 남아 있지만 v2 route에서는 사용하지 않는다.
