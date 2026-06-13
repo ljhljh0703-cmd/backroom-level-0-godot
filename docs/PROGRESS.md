@@ -23,13 +23,13 @@
 
 ## 현재 빌드
 
-- 플레이어블 소스 커밋: `2d51fd4`
-- GitHub Pages 배포 커밋: `5a15137`
-- 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=2d51fd4`
+- 플레이어블 소스 커밋: `0e36391`
+- GitHub Pages 배포 커밋: `7f49bd9`
+- 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=0e36391`
 - Godot: `4.6`
 - 배포 형식: GitHub Pages Web export, versioned `.pck`
 - 현재 단계: v2.3 polish review
-- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` v2.2 결정 반영, v2.3 polished placeholder 반영
+- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` v2.2 결정 반영, v2.3 polished placeholder와 사진 판넬 반영
 
 ## 결정 기록
 
@@ -161,7 +161,7 @@
 - 우측 판넬 cutout source는 `assets/source/human_panel_cutout.png`이고, `bg_right_panel_path.png`에 합성된다.
 - UI 캡션/프롬프트는 `assets/fonts/NotoSansKR-Regular.ttf`를 사용한다.
 - 현재 배경은 개발용 블록아웃 label을 제거한 polished placeholder다.
-- 현재 배포 빌드는 GDD v2의 8방 구조, v2.1 STOP 표지판 방/출구 조건 변경, v2.2 B 엔딩 전 길목 차단 frame, v2.3 polished placeholder와 한국어 UI 폰트를 포함한다.
+- 현재 배포 빌드는 GDD v2의 8방 구조, v2.1 STOP 표지판 방/출구 조건 변경, v2.2 B 엔딩 전 길목 차단 frame, v2.3 polished placeholder, 한국어 UI 폰트, 우측 사진 기반 인간형 판넬을 포함한다.
 - 기존 `hallway`, `junction`, `sign`, `door`, `other` 자산은 남아 있지만 v2 route에서는 사용하지 않는다.
 - `docs/DEV_REQUIREMENTS.md`는 GDD v2를 실제 구현 단위로 바꾼 기준 문서다.
 - `data/rooms.json`이 현재 v2 방 그래프와 hotspot의 기준이다.
@@ -206,6 +206,8 @@ v2.3 폴리싱 리뷰 질문:
 | `51486ca` | debug overlay 기본 OFF, 블록아웃 라벨 제거, polished placeholder 이미지 반영. |
 | `2d51fd4` | Godot Web export용 한국어 UI 폰트 포함. |
 | `5a15137` | v2.3 polished placeholder Web build 배포. |
+| `0e36391` | 우측 인간형 판넬을 사용자 사진 기반 cutout으로 교체하고 텍스트 초안 문서 추가. |
+| `7f49bd9` | 사진 판넬 반영 Web build 배포. |
 | `183c17f` | 상세 배경을 버리고 구조 검토용 블록아웃으로 전환. |
 | `acedfef` | reference-style 배경 시도. 이후 블록아웃 결정으로 대체됨. |
 | `866c9f9` | STOP 표지 갈림길 피드백과 첫 크리처 등장 지연 반영. |
