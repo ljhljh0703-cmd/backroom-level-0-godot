@@ -75,6 +75,9 @@ flowchart TD
 | `blood_trace_clicked` | `false` | `left_blood_path` 붉은 흔적 클릭 | A 엔딩 필수 단서 |
 | `panel_clue_clicked` | `false` | `right_panel_path` 인간형 판넬 클릭 | 우측 루트 위화감/크리처 노출 단서. A 필수 조건에서는 제외. |
 | `right_dead_end_seen` | `false` | `right_dead_end` 진입 | 복귀 시 판넬 소리 조건 |
+| `right_door_warning_seen` | `false` | `right_dead_end` 오른쪽 문 첫 클릭 | 문 재클릭 시 B 전환 |
+| `right_note_available` | `false` | 문 경고 후 `right_panel_path` 복귀 | 쪽지 단서 표시 |
+| `right_note_read` | `false` | 쪽지 화면 바깥 클릭 | A 엔딩 힌트 확인 완료 |
 | `panel_sound_played` | `false` | `right_dead_end -> right_panel_path` 복귀 후 1회 | 우측 루트 위화감 |
 | `creature_peek_seen` | `false` | 우측 루트 후 `fork_stop` 복귀 시 1회 | STOP 뒤 크리처 1초 등장 제한 |
 | `ending_id` | `""` | 엔딩 진입 시 `A`, `B`, `C` | 결과 화면/엔딩 버튼 |
@@ -128,6 +131,7 @@ flowchart TD
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
 | `human_panel` | `(0.405, 0.205, 0.220, 0.520)` | event `human_panel` | `판넬` |
+| `floor_note` | `(0.320, 0.735, 0.220, 0.095)` | event `floor_note`, requires `right_note_available`, hidden when `right_note_read` | `쪽지` |
 | `forward_dead_end` | `(0.660, 0.180, 0.300, 0.680)` | target `right_dead_end` | `앞으로` |
 | `back_to_fork` | `(0.300, 0.835, 0.360, 0.130)` | target `fork_stop` | `돌아가기` |
 
@@ -137,7 +141,7 @@ flowchart TD
 | --- | --- | --- | --- |
 | `dead_wall` | `(0.335, 0.210, 0.330, 0.500)` | event `dead_wall` | `벽` |
 | `back_panel_path` | `(0.300, 0.835, 0.400, 0.130)` | target `right_panel_path` | `돌아가기` |
-| `blocked_right_door` | `(0.780, 0.160, 0.200, 0.700)` | event `blocked_passage` | `문` |
+| `blocked_right_door` | `(0.780, 0.160, 0.200, 0.700)` | event `right_door`; first click warns, second click `blocked_passage` | `문` |
 
 ### Ending Rooms
 
@@ -151,6 +155,9 @@ flowchart TD
 | `blood_trace` | 첫 클릭 | `blood_trace_clicked = true`, 단서 캡션. |
 | `light_switch` | 첫 클릭 | `light_switch_pressed = true`, 버튼 눌림 연출, 캡션 "무언가 변한 것 같다". |
 | `human_panel` | 첫 클릭 | `panel_clue_clicked = true`, 단서 캡션. |
+| `right_door` | 첫 클릭 | `right_door_warning_seen = true`, 캡션 "뒤쪽에서 소리가 났다." |
+| `right_door` | `right_door_warning_seen == true` | `blocked_passage` 전환 후 B 엔딩. |
+| `floor_note` | `right_note_available == true` | 쪽지 화면 표시. 쪽지 화면 바깥 클릭 시 `right_note_read = true`, 0.5초 `note_flash` 이미지 표시. |
 | `dead_wall` | 항상 | 막다른 길 캡션. |
 | `attempt_exit` | `light_switch_pressed == true` | A/B 조건 판정. |
 

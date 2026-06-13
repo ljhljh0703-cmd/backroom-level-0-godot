@@ -20,6 +20,7 @@ func _run() -> void:
 	await _test_ending_menu()
 	await _test_c_ending()
 	await _test_right_route_peek()
+	await _test_right_dead_end_warning_note()
 	await _test_right_dead_end_door_block()
 	await _test_a_ending()
 	await _test_b_ending()
@@ -138,11 +139,47 @@ func _test_right_dead_end_door_block() -> void:
 	await _click_norm(0.80, 0.45)
 	_expect_room("right_dead_end", "blocked door start")
 	await _click_norm(0.88, 0.45)
+	_expect_room("right_dead_end", "blocked door first warning stays")
+	_expect_flag("right_door_warning_seen", true, "blocked door warning flag")
+	await _click_norm(0.88, 0.45)
 	await _wait_seconds(0.25)
 	_expect_state("transition", "right dead end door blocked passage")
 	await _wait_seconds(1.4)
 	_expect_ending("B", "right dead end door B ending")
 	_expect_room("false_exit_room", "right dead end door stop sign room")
+
+
+func _test_right_dead_end_warning_note() -> void:
+	game._reset_game()
+	await process_frame
+	await _click_norm(0.82, 0.55)
+	await _click_norm(0.80, 0.45)
+	_expect_room("right_dead_end", "warning note start")
+	await _click_norm(0.88, 0.45)
+	_expect_flag("right_door_warning_seen", true, "warning note door warning")
+	await _click_norm(0.50, 0.90)
+	_expect_room("right_panel_path", "warning note back room")
+	_expect_flag("right_note_available", true, "warning note available")
+	if not "floor_note" in game._active_hotspot_ids():
+		failures.append("warning note: floor_note hotspot is not active")
+	await _click_norm(0.43, 0.78)
+	_expect_state("note", "warning note screen opened")
+	if not game.note_layer.visible:
+		failures.append("warning note: note layer is hidden")
+	_expect_flag("right_note_read", false, "warning note unread while open")
+	await _click_norm(0.10, 0.10)
+	_expect_state("play", "warning note outside click closes")
+	_expect_flag("right_note_read", true, "warning note read after outside click")
+	if game.note_layer.visible:
+		failures.append("warning note: note layer did not hide")
+	if game.note_marker.visible:
+		failures.append("warning note: floor note marker did not hide")
+	if not game.note_flash.visible:
+		failures.append("warning note: note flash image did not show")
+	await _wait_seconds(0.58)
+	if game.note_flash.visible:
+		failures.append("warning note: note flash image did not hide")
+	_expect_room("right_panel_path", "warning note remains right panel path")
 
 
 func _click_norm(x: float, y: float) -> void:

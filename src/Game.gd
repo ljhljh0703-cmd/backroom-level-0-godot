@@ -21,6 +21,9 @@ const FLAG_DEFAULTS := {
 	"blood_trace_clicked": false,
 	"panel_clue_clicked": false,
 	"right_dead_end_seen": false,
+	"right_door_warning_seen": false,
+	"right_note_available": false,
+	"right_note_read": false,
 	"panel_sound_played": false,
 	"creature_peek_seen": false
 }
@@ -50,10 +53,13 @@ var world: Control
 var background: TextureRect
 var creature: TextureRect
 var foreground: TextureRect
+var note_shadow: ColorRect
+var note_marker: ColorRect
 var noise: TextureRect
 var vignette: TextureRect
 var threat_tint: ColorRect
 var flash_rect: ColorRect
+var note_flash: TextureRect
 var click_feedback: ColorRect
 var black_fade: ColorRect
 var caption_label: Label
@@ -70,6 +76,10 @@ var menu_title: Label
 var menu_body: Label
 var menu_primary_button: Button
 var menu_secondary_button: Button
+var note_layer: Control
+var note_scrim: ColorRect
+var note_box: PanelContainer
+var note_label: Label
 var debug_layer: Control
 var hum_player: AudioStreamPlayer
 var sfx_player: AudioStreamPlayer
@@ -138,6 +148,20 @@ func _build_nodes() -> void:
 	foreground.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	foreground.visible = false
 	world.add_child(foreground)
+
+	note_shadow = ColorRect.new()
+	note_shadow.name = "FloorNoteShadow"
+	note_shadow.color = Color(0.0, 0.0, 0.0, 0.34)
+	note_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	note_shadow.visible = false
+	world.add_child(note_shadow)
+
+	note_marker = ColorRect.new()
+	note_marker.name = "FloorNote"
+	note_marker.color = Color(0.92, 0.86, 0.62, 0.92)
+	note_marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	note_marker.visible = false
+	world.add_child(note_marker)
 
 	noise = TextureRect.new()
 	noise.name = "Noise"
@@ -239,6 +263,16 @@ func _build_nodes() -> void:
 	add_child(hold_label)
 
 	_build_menu_layer()
+	_build_note_layer()
+
+	note_flash = TextureRect.new()
+	note_flash.name = "NoteFlash"
+	note_flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	note_flash.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	note_flash.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	note_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	note_flash.visible = false
+	add_child(note_flash)
 
 	debug_layer = Control.new()
 	debug_layer.name = "DebugHotspots"
@@ -318,6 +352,44 @@ func _build_menu_layer() -> void:
 	_layout_menu()
 
 
+func _build_note_layer() -> void:
+	note_layer = Control.new()
+	note_layer.name = "NoteLayer"
+	note_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	note_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	note_layer.visible = false
+	add_child(note_layer)
+
+	note_scrim = ColorRect.new()
+	note_scrim.name = "NoteScrim"
+	note_scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	note_scrim.color = Color(0.0, 0.0, 0.0, 0.46)
+	note_scrim.mouse_filter = Control.MOUSE_FILTER_STOP
+	note_layer.add_child(note_scrim)
+
+	note_box = PanelContainer.new()
+	note_box.name = "NoteBox"
+	var style := _panel_style()
+	style.bg_color = Color(0.54, 0.49, 0.34, 0.94)
+	style.border_color = Color(0.15, 0.11, 0.06, 0.86)
+	note_box.add_theme_stylebox_override("panel", style)
+	note_box.mouse_filter = Control.MOUSE_FILTER_STOP
+	note_layer.add_child(note_box)
+
+	note_label = _make_label(25, Color(0.10, 0.07, 0.03), 0)
+	note_label.name = "NoteText"
+	note_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	note_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	note_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	note_label.offset_left = 26
+	note_label.offset_top = 22
+	note_label.offset_right = -26
+	note_label.offset_bottom = -22
+	note_box.add_child(note_label)
+
+	_layout_note()
+
+
 func _panel_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.025, 0.022, 0.015, 0.88)
@@ -386,6 +458,22 @@ func _layout_menu() -> void:
 	menu_box.offset_bottom = height * 0.5
 
 
+func _layout_note() -> void:
+	if note_box == null:
+		return
+	var view := get_viewport_rect().size
+	var width := minf(520.0, maxf(300.0, view.x * 0.54))
+	var height := minf(220.0, maxf(150.0, view.y * 0.25))
+	note_box.anchor_left = 0.5
+	note_box.anchor_right = 0.5
+	note_box.anchor_top = 0.5
+	note_box.anchor_bottom = 0.5
+	note_box.offset_left = -width * 0.5
+	note_box.offset_right = width * 0.5
+	note_box.offset_top = -height * 0.5
+	note_box.offset_bottom = height * 0.5
+
+
 func _make_label(font_size: int, color: Color, outline_size: int) -> Label:
 	var label := Label.new()
 	var settings := LabelSettings.new()
@@ -403,6 +491,7 @@ func _make_label(font_size: int, color: Color, outline_size: int) -> Label:
 func _load_assets() -> void:
 	creature_texture = load("res://assets/images/creature.png")
 	creature.texture = creature_texture
+	note_flash.texture = load(_transition_image_path("note_flash"))
 	noise.texture = load("res://assets/images/noise_overlay.png")
 	vignette.texture = load("res://assets/images/vignette.png")
 	click_sound = load("res://assets/audio/click.wav")
@@ -454,6 +543,9 @@ func _show_lobby() -> void:
 	creature.scale = Vector2.ONE
 	creature.rotation_degrees = 0.0
 	foreground.visible = false
+	_hide_floor_note()
+	_hide_note_screen()
+	_hide_note_flash()
 	noise.visible = true
 	vignette.visible = true
 	threat_tint.color.a = 0.0
@@ -511,6 +603,9 @@ func _quit_game() -> void:
 	room_id = ""
 	creature.visible = false
 	foreground.visible = false
+	_hide_floor_note()
+	_hide_note_screen()
+	_hide_note_flash()
 	noise.visible = false
 	vignette.visible = false
 	debug_layer.visible = false
@@ -540,6 +635,9 @@ func _reset_game() -> void:
 	creature.visible = false
 	creature.scale = Vector2.ONE
 	creature.rotation_degrees = 0.0
+	_hide_floor_note()
+	_hide_note_screen()
+	_hide_note_flash()
 	threat_tint.color.a = 0.0
 	flash_rect.color.a = 0.0
 	prompt_label.text = ""
@@ -588,10 +686,15 @@ func _process(delta: float) -> void:
 		_render_debug_overlay()
 	if menu_layer != null and menu_layer.visible:
 		_layout_menu()
+	if note_layer != null and note_layer.visible:
+		_layout_note()
 
 
 func _handle_click(screen_pos: Vector2) -> void:
 	if game_state == "hold":
+		return
+	if game_state == "note":
+		_handle_note_screen_click(screen_pos)
 		return
 	if game_state == "lobby" or game_state == "ending" or game_state == "quit":
 		return
@@ -653,9 +756,13 @@ func _go_to_room(target: String) -> void:
 		flags["right_dead_end_seen"] = true
 
 	if previous_room == ROOM_RIGHT_DEAD_END and target == ROOM_RIGHT_PATH and not bool(flags["panel_sound_played"]):
-		flags["panel_sound_played"] = true
-		post_caption = "판넬 뒤에서 소리가 났다."
-		play_panel_sound = true
+		if bool(flags["right_door_warning_seen"]) and not bool(flags["right_note_read"]):
+			flags["right_note_available"] = true
+			post_caption = "바닥에 무언가 떨어져 있다."
+		else:
+			flags["panel_sound_played"] = true
+			post_caption = "판넬 뒤에서 소리가 났다."
+			play_panel_sound = true
 
 	room_id = target
 	move_count += 1
@@ -697,6 +804,7 @@ func _render_room() -> void:
 		caption_label.text = str(room.get("caption", ""))
 	else:
 		caption_label.text = ""
+	_update_floor_note_marker()
 	prompt_label.text = ""
 	_update_creature()
 	_render_debug_overlay()
@@ -751,6 +859,12 @@ func _handle_event(event_name: String) -> void:
 	if event_name == "blocked_passage":
 		_show_blocked_passage_transition()
 		return
+	if event_name == "right_door":
+		_handle_right_door()
+		return
+	if event_name == "floor_note":
+		_show_note_screen()
+		return
 
 	if clicked_events.has(event_name):
 		_flash_caption(_repeat_event_line(event_name))
@@ -800,6 +914,19 @@ func _repeat_event_line(event_name: String) -> String:
 	return "아무것도 변하지 않는다."
 
 
+func _handle_right_door() -> void:
+	if bool(flags["right_door_warning_seen"]):
+		_show_blocked_passage_transition()
+		return
+	flags["right_door_warning_seen"] = true
+	_dev_log("event=right_door_warning flags=%s" % _debug_flag_summary())
+	_flash_caption("뒤쪽에서 소리가 났다.", 1.35)
+	_play_sting(thump_sound)
+	_flash_screen(Color(0.72, 0.02, 0.02, 0.18), 0.18)
+	_shake(5.0, 0.20)
+	_render_debug_overlay()
+
+
 func _attempt_exit() -> void:
 	_dev_log("event=attempt_exit true_requirements=%s flags=%s" % [str(_has_true_exit_requirements()), _debug_flag_summary()])
 	if _has_true_exit_requirements():
@@ -815,6 +942,9 @@ func _show_blocked_passage_transition() -> void:
 	debug_layer.visible = false
 	creature.visible = false
 	foreground.visible = false
+	_hide_floor_note()
+	_hide_note_screen()
+	_hide_note_flash()
 	var blocked_path := _transition_image_path("blocked_passage")
 	if blocked_path != "":
 		background.texture = load(blocked_path)
@@ -849,6 +979,9 @@ func _show_ending(id: String) -> void:
 	debug_layer.visible = false
 	creature_peek_active = false
 	creature_stage = 0
+	_hide_floor_note()
+	_hide_note_screen()
+	_hide_note_flash()
 	creature.scale = Vector2.ONE
 	creature.rotation_degrees = 0.0
 
@@ -1059,6 +1192,90 @@ func _hide_hover_feedback() -> void:
 		hover_badge_label.visible = false
 
 
+func _show_note_screen() -> void:
+	game_state = "note"
+	input_cooldown = 0.10
+	caption_label.text = ""
+	prompt_label.text = ""
+	debug_layer.visible = false
+	_hide_hover_feedback()
+	note_label.text = "스위치를 찾고, 멈춤 너머로 나아가."
+	note_layer.visible = true
+	_layout_note()
+	_publish_state("note_open")
+
+
+func _handle_note_screen_click(screen_pos: Vector2) -> void:
+	if input_cooldown > 0.0:
+		return
+	if _point_in_control(note_box, screen_pos):
+		return
+	_close_note_screen()
+
+
+func _close_note_screen() -> void:
+	flags["right_note_read"] = true
+	game_state = "play"
+	input_cooldown = 0.55
+	_hide_note_screen()
+	_update_floor_note_marker()
+	_render_debug_overlay()
+	_publish_state("note_closed")
+	_show_note_flash(0.50)
+
+
+func _hide_note_screen() -> void:
+	if note_layer != null:
+		note_layer.visible = false
+
+
+func _point_in_control(control: Control, point: Vector2) -> bool:
+	if control == null:
+		return false
+	return Rect2(control.global_position, control.size).has_point(point)
+
+
+func _update_floor_note_marker() -> void:
+	var visible := game_state == "play" and room_id == ROOM_RIGHT_PATH and bool(flags.get("right_note_available", false)) and not bool(flags.get("right_note_read", false))
+	if not visible:
+		_hide_floor_note()
+		return
+	var view := get_viewport_rect().size
+	var size := Vector2(view.x * 0.120, view.y * 0.050)
+	var pos := Vector2(view.x * 0.365, view.y * 0.765)
+	note_shadow.position = pos + Vector2(5, 5)
+	note_shadow.size = size
+	note_shadow.visible = true
+	note_marker.position = pos
+	note_marker.size = size
+	note_marker.visible = true
+
+
+func _hide_floor_note() -> void:
+	if note_shadow != null:
+		note_shadow.visible = false
+	if note_marker != null:
+		note_marker.visible = false
+
+
+func _show_note_flash(duration: float) -> void:
+	if note_flash.texture == null:
+		return
+	note_flash.visible = true
+	note_flash.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	caption_label.text = ""
+	prompt_label.text = ""
+	_play_sting(thump_sound)
+	_shake(4.5, 0.16)
+	var timer := get_tree().create_timer(duration)
+	timer.timeout.connect(_hide_note_flash)
+
+
+func _hide_note_flash() -> void:
+	if note_flash != null:
+		note_flash.visible = false
+
+
 func _normalized_position(screen_pos: Vector2) -> Vector2:
 	var view_size := get_viewport_rect().size
 	if view_size.x <= 0.0 or view_size.y <= 0.0:
@@ -1103,7 +1320,7 @@ func _render_debug_overlay() -> void:
 
 
 func _debug_text() -> String:
-	return "room=%s  end=%s\nswitch=%s red=%s trace=%s panel=%s\nstop_reentry=%s dead_end=%s peek=%s" % [
+	return "room=%s  end=%s\nswitch=%s red=%s trace=%s panel=%s\nstop_reentry=%s dead_end=%s warn=%s note=%s peek=%s" % [
 		room_id,
 		ending_id,
 		str(flags.get("light_switch_pressed", false)),
@@ -1112,18 +1329,22 @@ func _debug_text() -> String:
 		str(flags.get("panel_clue_clicked", false)),
 		str(flags.get("stop_back_reentry_armed", false)),
 		str(flags.get("right_dead_end_seen", false)),
+		str(flags.get("right_door_warning_seen", false)),
+		str(flags.get("right_note_read", false)),
 		str(flags.get("creature_peek_seen", false))
 	]
 
 
 func _debug_flag_summary() -> String:
-	return "switch=%s red=%s trace=%s panel=%s reentry=%s dead=%s peek=%s" % [
+	return "switch=%s red=%s trace=%s panel=%s reentry=%s dead=%s warn=%s note=%s peek=%s" % [
 		str(flags.get("light_switch_pressed", false)),
 		str(flags.get("stop_back_red_seen", false)),
 		str(flags.get("blood_trace_clicked", false)),
 		str(flags.get("panel_clue_clicked", false)),
 		str(flags.get("stop_back_reentry_armed", false)),
 		str(flags.get("right_dead_end_seen", false)),
+		str(flags.get("right_door_warning_seen", false)),
+		str(flags.get("right_note_read", false)),
 		str(flags.get("creature_peek_seen", false))
 	]
 

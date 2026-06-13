@@ -9,6 +9,9 @@
     "blood_trace_clicked",
     "panel_clue_clicked",
     "right_dead_end_seen",
+    "right_door_warning_seen",
+    "right_note_available",
+    "right_note_read",
     "panel_sound_played",
     "creature_peek_seen"
   ],
@@ -17,6 +20,8 @@
     "blood_trace",
     "light_switch",
     "human_panel",
+    "right_door",
+    "floor_note",
     "dead_wall",
     "blocked_passage",
     "attempt_exit"
@@ -25,7 +30,8 @@
     "attempt_exit": ["true_exit_room", "false_exit_room"]
   },
   "transition_images": {
-    "blocked_passage": "res://assets/images/bg_blocked_passage.png"
+    "blocked_passage": "res://assets/images/bg_blocked_passage.png",
+    "note_flash": "res://assets/images/bg_right_note_flash.png"
   },
   "creature_beats": {
     "switch_shadow": {
@@ -175,6 +181,14 @@
           "prompt": "판넬"
         },
         {
+          "id": "floor_note",
+          "rect": [0.320, 0.735, 0.220, 0.095],
+          "event": "floor_note",
+          "prompt": "쪽지",
+          "requires_flag": "right_note_available",
+          "hidden_when_flag": "right_note_read"
+        },
+        {
           "id": "forward_dead_end",
           "rect": [0.660, 0.180, 0.300, 0.680],
           "target": "right_dead_end",
@@ -207,7 +221,7 @@
         {
           "id": "blocked_right_door",
           "rect": [0.780, 0.160, 0.200, 0.700],
-          "event": "blocked_passage",
+          "event": "right_door",
           "prompt": "문"
         }
       ]
