@@ -8,7 +8,7 @@ const ROOM_RIGHT_PATH := "right_panel_path"
 const ROOM_RIGHT_DEAD_END := "right_dead_end"
 const ROOM_TRUE_EXIT := "true_exit_room"
 const ROOM_FALSE_EXIT := "false_exit_room"
-const DEV_LOGGING := true
+const DEV_LOGGING := false
 
 const FLAG_DEFAULTS := {
 	"stop_back_seen_once": false,
@@ -39,7 +39,7 @@ var elapsed := 0.0
 var shake_time := 0.0
 var shake_power := 0.0
 var hover_prompt := ""
-var debug_hotspots_visible := true
+var debug_hotspots_visible := false
 var debug_viewport_size := Vector2.ZERO
 
 var world: Control

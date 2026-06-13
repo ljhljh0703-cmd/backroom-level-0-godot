@@ -14,14 +14,14 @@ IMAGES = ROOT / "assets" / "images"
 AUDIO = ROOT / "assets" / "audio"
 W, H = 1280, 720
 
-# Current visual mode is intentionally a blockout. Final image style should be
-# applied in one pass after the room flow and object placement are approved.
-BG = (10, 10, 11)
-FLOOR = (32, 32, 34)
-WALL = (46, 46, 48)
-LINE = (92, 92, 96)
+# Current visual mode is a polished placeholder: positions stay readable, but
+# obvious blockout labels are removed so playtesting focuses on mood and flow.
+BG = (18, 17, 13)
+FLOOR = (72, 68, 48)
+WALL = (112, 104, 70)
+LINE = (126, 113, 76)
 DARK = (2, 2, 3)
-HOT = (188, 176, 112)
+HOT = (214, 199, 128)
 RED = (126, 20, 18)
 
 
@@ -39,12 +39,44 @@ def font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-def text_center(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], text: str, size: int = 32) -> None:
+def text_center(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], text: str, size: int = 32, fill: tuple[int, int, int] = HOT) -> None:
     fnt = font(size)
     bbox = draw.textbbox((0, 0), text, font=fnt)
     x = box[0] + (box[2] - box[0] - (bbox[2] - bbox[0])) / 2
     y = box[1] + (box[3] - box[1] - (bbox[3] - bbox[1])) / 2
-    draw.text((x, y), text, fill=HOT, font=fnt)
+    draw.text((x, y), text, fill=fill, font=fnt)
+
+
+def add_grain(img: Image.Image, seed: int, opacity: int = 18) -> Image.Image:
+    rng = random.Random(seed)
+    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    pix = overlay.load()
+    for y in range(H):
+        for x in range(W):
+            if (x + y) % 2 == 0:
+                v = rng.randrange(0, 255)
+                pix[x, y] = (v, v, v, rng.randrange(0, opacity))
+    return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
+
+
+def stable_seed(text: str) -> int:
+    return sum((index + 1) * ord(char) for index, char in enumerate(text)) % 100000
+
+
+def soft_glow(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], color: tuple[int, int, int, int], radius: int = 26) -> None:
+    x1, y1, x2, y2 = box
+    for step in range(radius, 0, -5):
+        alpha = max(8, int(color[3] * step / radius * 0.35))
+        draw.rounded_rectangle((x1 - step, y1 - step, x2 + step, y2 + step), radius=4, fill=(color[0], color[1], color[2], alpha))
+
+
+def draw_fluorescent(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int]) -> None:
+    x1, y1, x2, y2 = box
+    for pad, color in [(30, (92, 86, 52)), (20, (118, 108, 65)), (10, (148, 136, 82))]:
+        draw.rounded_rectangle((x1 - pad, y1 - pad, x2 + pad, y2 + pad), radius=6, fill=color)
+    draw.rounded_rectangle(box, radius=3, fill=(224, 220, 170), outline=(250, 244, 188), width=2)
+    for x in range(x1 + 8, x2 - 4, 14):
+        draw.line((x, y1 + 3, x, y2 - 3), fill=(172, 164, 112), width=1)
 
 
 def blockout_room(label: str = "") -> tuple[Image.Image, ImageDraw.ImageDraw]:
@@ -55,28 +87,31 @@ def blockout_room(label: str = "") -> tuple[Image.Image, ImageDraw.ImageDraw]:
     back_wall = [(440, 260), (840, 260), (825, 455), (455, 455)]
     right_wall = [(840, 260), (W, 205), (W, 520), (825, 455)]
     floor = [(0, 520), (455, 455), (825, 455), (W, 520), (W, H), (0, H)]
-    draw.polygon(ceiling, fill=(24, 24, 26))
-    draw.polygon(left_wall, fill=WALL)
-    draw.polygon(back_wall, fill=(56, 56, 58))
-    draw.polygon(right_wall, fill=(38, 38, 40))
+    draw.polygon(ceiling, fill=(68, 63, 45))
+    draw.polygon(left_wall, fill=(112, 105, 70))
+    draw.polygon(back_wall, fill=(126, 118, 78))
+    draw.polygon(right_wall, fill=(92, 86, 58))
     draw.polygon(floor, fill=FLOOR)
-    for x in range(0, W + 1, 160):
-        draw.line((x, H, 640, 455), fill=(55, 55, 58), width=2)
-    for y in range(500, H, 44):
-        draw.line((0, y, W, y), fill=(55, 55, 58), width=2)
+    for x in range(0, W + 1, 92):
+        draw.line((x, H, 640, 455), fill=(82, 78, 55), width=1)
+    for y in range(500, H, 26):
+        draw.line((0, y, W, y), fill=(82, 78, 55), width=1)
     for x in range(80, W, 160):
-        draw.line((x, 0, 640, 260), fill=(48, 48, 51), width=2)
+        draw.line((x, 0, 640, 260), fill=(92, 86, 60), width=2)
     for y in range(45, 230, 45):
-        draw.line((0, y, W, y), fill=(48, 48, 51), width=2)
-    draw.rectangle((520, 110, 760, 140), fill=(150, 145, 105), outline=HOT, width=3)
-    if label:
-        draw.text((34, 30), label, fill=(130, 130, 136), font=font(24))
-    return img, draw
+        draw.line((0, y, W, y), fill=(92, 86, 60), width=2)
+    for x in range(75, W, 130):
+        draw.line((x, 212, x + 22, 512), fill=(104, 96, 64), width=1)
+    draw_fluorescent(draw, (520, 110, 760, 140))
+    draw_fluorescent(draw, (215, 150, 350, 174))
+    draw_fluorescent(draw, (930, 150, 1065, 174))
+    img = add_grain(img, stable_seed(label), 14)
+    return img, ImageDraw.Draw(img)
 
 
 def doorway(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], label: str = "") -> None:
     x1, y1, x2, y2 = box
-    draw.rectangle((x1 - 12, y1 - 12, x2 + 12, y2 + 12), fill=(78, 78, 82), outline=LINE, width=3)
+    draw.rectangle((x1 - 12, y1 - 12, x2 + 12, y2 + 12), fill=(84, 76, 54), outline=LINE, width=3)
     draw.rectangle(box, fill=DARK)
 
 
@@ -85,7 +120,8 @@ def arrow_path(draw: ImageDraw.ImageDraw, side: str, label: str) -> None:
         poly = [(60, 355), (330, 285), (445, 455), (0, 620)]
     else:
         poly = [(950, 285), (1220, 355), (1280, 620), (835, 455)]
-    draw.polygon(poly, fill=(4, 4, 5), outline=LINE)
+    draw.polygon(poly, fill=(7, 6, 5), outline=(94, 86, 58))
+    draw.line(poly + [poly[0]], fill=(46, 40, 30), width=4)
 
 
 def red_trace(draw: ImageDraw.ImageDraw) -> None:
@@ -119,12 +155,10 @@ def stop_sign_shape(draw: ImageDraw.ImageDraw, cx: int, cy: int, radius: int, al
 def scene_fork_stop() -> Image.Image:
     img, draw = blockout_room("BLOCKOUT: FORK_STOP")
     draw.rectangle((455, 45, 825, 230), fill=(0, 0, 0), outline=(76, 58, 40), width=3)
-    text_center(draw, (455, 45, 825, 118), "STOP BACK", 28)
+    draw.rectangle((472, 64, 808, 225), fill=(1, 1, 1))
     arrow_path(draw, "left", "LEFT")
     arrow_path(draw, "right", "RIGHT")
     red_trace(draw)
-    draw.text((120, 320), "LEFT", fill=HOT, font=font(34))
-    draw.text((1010, 320), "RIGHT", fill=HOT, font=font(34))
     return img
 
 
@@ -150,10 +184,9 @@ def scene_stop_back_dark() -> Image.Image:
     draw = ImageDraw.Draw(img)
     for y in range(0, H, 48):
         draw.line((0, y, W, y), fill=(8, 8, 10), width=1)
-    draw.rectangle((0, 0, 270, H), fill=(5, 5, 6), outline=(34, 34, 38), width=2)
-    draw.text((34, 30), "BLOCKOUT: STOP_BACK_DARK", fill=(72, 72, 78), font=font(24))
-    draw.text((44, H // 2 - 20), "BACK", fill=(92, 92, 96), font=font(30))
-    return img
+    draw.rectangle((0, 0, 270, H), fill=(4, 4, 5), outline=(34, 34, 38), width=2)
+    draw.rectangle((18, 120, 250, 640), fill=(2, 2, 3), outline=(22, 22, 25), width=2)
+    return add_grain(img, 3001, 10)
 
 
 def scene_stop_back_red() -> Image.Image:
@@ -166,10 +199,8 @@ def scene_stop_back_red() -> Image.Image:
     draw.rectangle((0, 0, 270, H), fill=(8, 5, 5), outline=(70, 22, 18), width=2)
     draw.ellipse((435, 155, 845, 565), fill=(96, 14, 12), outline=(176, 32, 22), width=6)
     draw.rectangle((500, 210, 780, 520), fill=(20, 0, 0), outline=(210, 54, 36), width=5)
-    text_center(draw, (500, 210, 780, 520), "RED GAP", 36)
-    draw.text((34, 30), "BLOCKOUT: STOP_BACK_RED", fill=(146, 68, 56), font=font(24))
-    draw.text((44, H // 2 - 20), "BACK", fill=(136, 72, 62), font=font(30))
-    return img
+    draw.rectangle((18, 120, 250, 640), fill=(8, 3, 3), outline=(70, 22, 18), width=2)
+    return add_grain(img, 3002, 16)
 
 
 def scene_left_blood_path() -> Image.Image:
@@ -196,17 +227,14 @@ def scene_left_blood_path() -> Image.Image:
     blood.polygon([(438, 650), (512, 622), (592, 638), (542, 676), (468, 688)], fill=(78, 0, 0, 145))
     overlay = overlay.filter(ImageFilter.GaussianBlur(1.1))
     img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
-    draw = ImageDraw.Draw(img)
-    draw.text((330, 590), "DRAG TRACE", fill=(190, 70, 62), font=font(28))
     return img
 
 
 def scene_left_switch_room() -> Image.Image:
     img, draw = blockout_room("BLOCKOUT: LEFT_SWITCH_ROOM")
-    draw.rectangle((520, 250, 760, 475), fill=(34, 34, 38), outline=LINE, width=4)
-    draw.rectangle((576, 305, 704, 420), fill=(16, 16, 18), outline=HOT, width=5)
+    draw.rectangle((520, 250, 760, 475), fill=(70, 64, 48), outline=LINE, width=4)
+    draw.rectangle((576, 305, 704, 420), fill=(19, 17, 14), outline=HOT, width=5)
     draw.ellipse((618, 338, 662, 382), fill=(114, 28, 20), outline=(220, 80, 52), width=4)
-    text_center(draw, (520, 430, 760, 500), "LIGHT BUTTON", 24)
     draw.line((320, 610, 470, 560), fill=RED, width=8)
     return img
 
@@ -221,25 +249,25 @@ def scene_right_panel_path() -> Image.Image:
     draw.line((625, 340, 672, 420), fill=(12, 12, 14), width=18)
     draw.line((603, 430, 570, 525), fill=(12, 12, 14), width=18)
     draw.line((617, 430, 650, 525), fill=(12, 12, 14), width=18)
-    text_center(draw, (500, 560, 720, 615), "PANEL", 24)
     return img
 
 
 def scene_right_dead_end() -> Image.Image:
     img, draw = blockout_room("BLOCKOUT: RIGHT_DEAD_END")
-    draw.rectangle((360, 200, 920, 610), fill=(58, 58, 62), outline=LINE, width=5)
-    draw.line((380, 240, 900, 590), fill=(36, 36, 40), width=5)
-    draw.line((900, 240, 380, 590), fill=(36, 36, 40), width=5)
-    text_center(draw, (430, 340, 850, 460), "DEAD END", 48)
+    draw.rectangle((360, 200, 920, 610), fill=(92, 86, 59), outline=LINE, width=5)
+    for x in range(390, 900, 78):
+        draw.rectangle((x, 218, x + 42, 596), fill=(74, 67, 45), outline=(52, 46, 32), width=2)
+    draw.line((380, 240, 900, 590), fill=(42, 34, 24), width=10)
+    draw.line((900, 240, 380, 590), fill=(42, 34, 24), width=10)
     return img
 
 
 def scene_true_exit_room() -> Image.Image:
     img, draw = blockout_room("BLOCKOUT: TRUE_EXIT_ROOM")
-    draw.rectangle((455, 135, 825, 650), fill=(88, 88, 82), outline=(220, 205, 138), width=8)
-    draw.rectangle((505, 190, 775, 635), fill=(190, 186, 150), outline=(240, 226, 158), width=5)
-    draw.rectangle((520, 92, 760, 140), fill=(20, 72, 42), outline=HOT, width=4)
-    text_center(draw, (520, 92, 760, 140), "EXIT", 34)
+    draw.rectangle((455, 135, 825, 650), fill=(92, 86, 60), outline=(220, 205, 138), width=8)
+    draw.rectangle((505, 190, 775, 635), fill=(198, 193, 150), outline=(240, 226, 158), width=5)
+    draw.ellipse((735, 400, 755, 420), fill=(70, 56, 34))
+    draw.rectangle((520, 92, 760, 140), fill=(214, 205, 150), outline=HOT, width=4)
     return img
 
 
@@ -256,8 +284,7 @@ def scene_false_exit_room() -> Image.Image:
     floor_hatch = [(470, 625), (810, 625), (920, 715), (360, 715)]
     draw.polygon(floor_hatch, fill=(3, 3, 4), outline=(150, 32, 24))
     draw.line((430, 670, 850, 670), fill=(98, 20, 16), width=5)
-    draw.text((34, 30), "BLOCKOUT: FALSE_EXIT_STOP_ROOM", fill=(130, 88, 72), font=font(24))
-    return img
+    return add_grain(img, 8001, 12)
 
 
 def scene_blocked_passage() -> Image.Image:
@@ -277,7 +304,6 @@ def scene_blocked_passage() -> Image.Image:
 
     draw.rectangle((470, 535, 810, 675), fill=(2, 2, 3), outline=(166, 30, 22), width=5)
     draw.line((430, 580, 850, 580), fill=(120, 18, 14), width=6)
-    draw.text((505, 590), "FLOOR DOOR", fill=(156, 72, 58), font=font(28))
 
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     sdraw = ImageDraw.Draw(shadow)
@@ -287,10 +313,7 @@ def scene_blocked_passage() -> Image.Image:
     sdraw.line((685, 390, 780, 520), fill=(0, 0, 0, 135), width=26)
     shadow = shadow.filter(ImageFilter.GaussianBlur(5.0))
     img = Image.alpha_composite(img.convert("RGBA"), shadow).convert("RGB")
-    draw = ImageDraw.Draw(img)
-    draw.text((34, 30), "BLOCKOUT: BLOCKED_PASSAGE", fill=(155, 78, 64), font=font(24))
-    draw.text((420, 110), "PASSAGE BLOCKED", fill=(184, 92, 70), font=font(34))
-    return img
+    return add_grain(img, 8101, 16)
 
 
 def vignette() -> Image.Image:
