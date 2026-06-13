@@ -16,6 +16,7 @@ REVIEW = ROOT / "assets" / "review"
 SOURCE = ROOT / "assets" / "source"
 HUMAN_PANEL_CUTOUT = SOURCE / "human_panel_cutout.png"
 FORK_STOP_REFERENCE = SOURCE / "fork_stop_reference.png"
+LEFT_BLOOD_PATH_REFERENCE = SOURCE / "left_blood_path_reference.png"
 W, H = 1280, 720
 
 # Current visual mode is a polished placeholder: positions stay readable, but
@@ -65,6 +66,23 @@ def add_grain(img: Image.Image, seed: int, opacity: int = 18) -> Image.Image:
 
 def stable_seed(text: str) -> int:
     return sum((index + 1) * ord(char) for index, char in enumerate(text)) % 100000
+
+
+def cover_reference(path: Path, *, focal_y: float = 0.5) -> Image.Image:
+    img = Image.open(path).convert("RGB")
+    src_w, src_h = img.size
+    target_aspect = W / H
+    src_aspect = src_w / src_h
+    if src_aspect < target_aspect:
+        crop_h = round(src_w / target_aspect)
+        y0 = round((src_h - crop_h) * focal_y)
+        y0 = max(0, min(src_h - crop_h, y0))
+        img = img.crop((0, y0, src_w, y0 + crop_h))
+    elif src_aspect > target_aspect:
+        crop_w = round(src_h * target_aspect)
+        x0 = round((src_w - crop_w) * 0.5)
+        img = img.crop((x0, 0, x0 + crop_w, src_h))
+    return img.resize((W, H), Image.Resampling.LANCZOS)
 
 
 def soft_glow(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], color: tuple[int, int, int, int], radius: int = 26) -> None:
@@ -345,6 +363,9 @@ def scene_stop_back_red() -> Image.Image:
 
 
 def scene_left_blood_path() -> Image.Image:
+    if LEFT_BLOOD_PATH_REFERENCE.exists():
+        return cover_reference(LEFT_BLOOD_PATH_REFERENCE, focal_y=0.86)
+
     img, draw = blockout_room("BLOCKOUT: LEFT_BLOOD_PATH")
     doorway(draw, (710, 230, 1080, 615), "SWITCH")
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
