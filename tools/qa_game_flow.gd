@@ -91,7 +91,7 @@ func _test_a_ending() -> void:
 	await process_frame
 	await _click_norm(0.12, 0.55)
 	await _click_norm(0.45, 0.65)
-	await _click_norm(0.76, 0.45)
+	await _click_norm(0.43, 0.54)
 	await _click_norm(0.50, 0.43)
 	await _click_norm(0.10, 0.50)
 	await _click_norm(0.10, 0.50)
@@ -105,7 +105,7 @@ func _test_b_ending() -> void:
 	game._reset_game()
 	await process_frame
 	await _click_norm(0.12, 0.55)
-	await _click_norm(0.76, 0.45)
+	await _click_norm(0.43, 0.54)
 	await _click_norm(0.50, 0.43)
 	await _click_norm(0.10, 0.50)
 	await _click_norm(0.10, 0.50)

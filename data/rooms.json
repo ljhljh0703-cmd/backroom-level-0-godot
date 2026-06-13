@@ -128,13 +128,13 @@
       "hotspots": [
         {
           "id": "blood_trace",
-          "rect": [0.210, 0.540, 0.560, 0.245],
+          "rect": [0.210, 0.595, 0.560, 0.190],
           "event": "blood_trace",
           "prompt": "흔적"
         },
         {
           "id": "forward_switch",
-          "rect": [0.610, 0.210, 0.310, 0.590],
+          "rect": [0.300, 0.480, 0.200, 0.115],
           "target": "left_switch_room",
           "prompt": "더 안쪽"
         },

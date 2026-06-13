@@ -112,8 +112,8 @@ flowchart TD
 
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
-| `blood_trace` | `(0.210, 0.540, 0.560, 0.245)` | event `blood_trace` | `흔적` |
-| `forward_switch` | `(0.610, 0.210, 0.310, 0.590)` | target `left_switch_room` | `더 안쪽` |
+| `blood_trace` | `(0.210, 0.595, 0.560, 0.190)` | event `blood_trace` | `흔적` |
+| `forward_switch` | `(0.300, 0.480, 0.200, 0.115)` | target `left_switch_room` | `더 안쪽` |
 | `back_to_fork` | `(0.020, 0.150, 0.230, 0.720)` | target `fork_stop` | `돌아가기` |
 
 ### `left_switch_room`
