@@ -510,14 +510,30 @@ func _attempt_exit() -> void:
 		_show_ending("A")
 		return
 	game_state = "transition"
-	caption_label.text = ""
+	caption_label.text = "뒤가 막혔다."
 	prompt_label.text = ""
-	_publish_state("false_exit_chase")
-	_flash_screen(Color(0.9, 0.07, 0.03, 0.30), 0.28)
-	_show_creature_beat("false_exit_chase")
-	var timer := get_tree().create_timer(_creature_beat_total("false_exit_chase", 0.95))
-	timer.timeout.connect(func() -> void:
-		_show_ending("B")
+	debug_layer.visible = false
+	creature.visible = false
+	foreground.visible = false
+	var blocked_path := _transition_image_path("blocked_passage")
+	if blocked_path != "":
+		background.texture = load(blocked_path)
+	_publish_state("blocked_passage")
+	_play_sting(thump_sound)
+	_flash_screen(Color(0.75, 0.02, 0.02, 0.22), 0.22)
+	_shake(6.0, 0.24)
+	var blocked_timer := get_tree().create_timer(0.62)
+	blocked_timer.timeout.connect(func() -> void:
+		if game_state != "transition":
+			return
+		caption_label.text = ""
+		_publish_state("false_exit_chase")
+		_flash_screen(Color(0.9, 0.07, 0.03, 0.30), 0.28)
+		_show_creature_beat("false_exit_chase")
+		var ending_timer := get_tree().create_timer(_creature_beat_total("false_exit_chase", 0.95))
+		ending_timer.timeout.connect(func() -> void:
+			_show_ending("B")
+		)
 	)
 
 
@@ -624,6 +640,11 @@ func _creature_beat_total(name: String, fallback: float) -> float:
 func _creature_beat(name: String) -> Dictionary:
 	var beats: Dictionary = room_config.get("creature_beats", {})
 	return beats.get(name, {})
+
+
+func _transition_image_path(name: String) -> String:
+	var images: Dictionary = room_config.get("transition_images", {})
+	return str(images.get(name, ""))
 
 
 func _creature_beat_float(name: String, key: String, fallback: float) -> float:

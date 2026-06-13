@@ -47,6 +47,7 @@ def main() -> int:
     state_flags = set(data.get("state_flags", []))
     known_events = set(data.get("events", []))
     event_targets: dict[str, list[str]] = data.get("event_targets", {})
+    transition_images: dict[str, str] = data.get("transition_images", {})
     ending_rooms = set(data.get("ending_rooms", []))
     errors: list[str] = []
     warnings: list[str] = []
@@ -120,6 +121,10 @@ def main() -> int:
     for ending_room in ending_rooms:
         if ending_room not in rooms:
             add_error(errors, f"ending room is missing: {ending_room!r}")
+
+    for transition_name, transition_image in transition_images.items():
+        if not isinstance(transition_image, str) or not resource_exists(transition_image):
+            add_error(errors, f"transition image {transition_name!r} is missing: {transition_image!r}")
 
     for message in warnings + errors:
         print(message)

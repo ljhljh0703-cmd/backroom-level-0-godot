@@ -260,6 +260,39 @@ def scene_false_exit_room() -> Image.Image:
     return img
 
 
+def scene_blocked_passage() -> Image.Image:
+    img, draw = blockout_room("BLOCKOUT: BLOCKED_PASSAGE")
+    draw.rectangle((0, 0, W, H), fill=(9, 5, 5))
+    draw.polygon([(0, 200), (405, 260), (430, 520), (0, 680)], fill=(20, 13, 13))
+    draw.polygon([(W, 200), (875, 260), (850, 520), (W, 680)], fill=(18, 12, 12))
+    draw.polygon([(400, 260), (880, 260), (850, 520), (430, 520)], fill=(34, 20, 18))
+    draw.polygon([(0, 680), (430, 520), (850, 520), (W, 680), (W, H), (0, H)], fill=(15, 10, 10))
+
+    for x in range(370, 930, 105):
+        draw.rectangle((x, 230, x + 42, 610), fill=(32, 23, 17), outline=(102, 42, 28), width=3)
+        stop_sign_shape(draw, x + 21, 230, 36, (102, 16, 14))
+
+    for x, y, r in [(160, 315, 54), (1100, 315, 54), (640, 180, 68), (520, 430, 50), (760, 430, 50)]:
+        stop_sign_shape(draw, x, y, r, (118, 17, 14))
+
+    draw.rectangle((470, 535, 810, 675), fill=(2, 2, 3), outline=(166, 30, 22), width=5)
+    draw.line((430, 580, 850, 580), fill=(120, 18, 14), width=6)
+    draw.text((505, 590), "FLOOR DOOR", fill=(156, 72, 58), font=font(28))
+
+    shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    sdraw = ImageDraw.Draw(shadow)
+    sdraw.ellipse((560, 190, 720, 360), fill=(0, 0, 0, 145))
+    sdraw.rectangle((594, 330, 686, 575), fill=(0, 0, 0, 150))
+    sdraw.line((595, 390, 500, 520), fill=(0, 0, 0, 135), width=26)
+    sdraw.line((685, 390, 780, 520), fill=(0, 0, 0, 135), width=26)
+    shadow = shadow.filter(ImageFilter.GaussianBlur(5.0))
+    img = Image.alpha_composite(img.convert("RGBA"), shadow).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    draw.text((34, 30), "BLOCKOUT: BLOCKED_PASSAGE", fill=(155, 78, 64), font=font(24))
+    draw.text((420, 110), "PASSAGE BLOCKED", fill=(184, 92, 70), font=font(34))
+    return img
+
+
 def vignette() -> Image.Image:
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     pix = img.load()
@@ -355,6 +388,7 @@ def main() -> None:
         "bg_right_dead_end.png": scene_right_dead_end(),
         "bg_true_exit_room.png": scene_true_exit_room(),
         "bg_false_exit_room.png": scene_false_exit_room(),
+        "bg_blocked_passage.png": scene_blocked_passage(),
         "vignette.png": vignette(),
         "noise_overlay.png": noise_overlay(),
         "icon.png": icon(),

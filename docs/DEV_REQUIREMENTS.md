@@ -1,6 +1,6 @@
-# Development Requirements: Backroom Level 0 v2.1
+# Development Requirements: Backroom Level 0 v2.2
 
-상태: GDD v2 승인 후 구현 기준, v2.1 결정 반영
+상태: GDD v2 승인 후 구현 기준, v2.2 결정 반영
 목적: 구현 전에 route graph, hotspot, state flag, event/ending 조건을 고정한다.
 
 ## 1. Scope
@@ -14,6 +14,7 @@
 - 좌측 전등 버튼과 상태 변화.
 - 우측 인간형 판넬 단서, 막다른 길, 복귀 시 판넬 소리와 STOP 뒤 크리처 1초 등장.
 - A/B/C 엔딩 조건.
+- B 엔딩 전 길목 차단 transition frame.
 - 개발용 hotspot overlay와 route validation.
 - Godot headless A/B/C route QA.
 
@@ -39,6 +40,7 @@
 | 8 | `false_exit_room` | B 엔딩 방: STOP 표지판만 가득한 시작점 변형 | `bg_false_exit_room.png` |
 
 엔딩 C는 별도 방이 아니라 즉시 결과 상태로 처리한다.
+`bg_blocked_passage.png`는 별도 방이 아니라 B 엔딩 직전 전환 이미지로만 사용한다.
 
 ## 3. Target Route Graph
 
@@ -174,9 +176,10 @@ flowchart TD
 | B 탈출 후 백룸 | `attempt_exit` 시 A 조건 중 하나라도 부족 | 추격 beat 후 `false_exit_room` 진입. 방은 시작점처럼 보이지만 STOP 표지판만 가득하고 바닥 문이 있다. |
 | C 크리처에게 잡힘 | STOP 뒤 공간 연속 재진입 | 즉시 C 엔딩. |
 
-B 엔딩의 v2.1 연출:
+B 엔딩의 v2.2 연출:
 
-- `false_exit_room` 진입 직전에 소리/흔들림/크리처 실루엣으로 "쫓겨 들어갔다"는 감각을 준다.
+- `false_exit_room` 진입 직전에 `bg_blocked_passage.png`를 0.62초 보여주며 길목이 막힌 감각을 준다.
+- 이후 소리/흔들림/크리처 실루엣으로 "쫓겨 들어갔다"는 감각을 준다.
 - 엔딩 방에서 설명 캡션은 쓰지 않는다.
 - 추후 승인 후 바닥 문 연출과 추격 컷을 강화한다.
 
@@ -207,7 +210,8 @@ B 엔딩의 v2.1 연출:
 7. 완료: 개발용 hotspot overlay를 추가한다.
 8. 완료: route validation 스크립트로 누락 target, 누락 이미지, 도달 불가능 방을 검사한다.
 9. 완료: 블록아웃 asset generator를 8개 방 기준으로 갱신한다.
-10. 진행: Godot Web export 후 배포 링크로 리뷰한다.
+10. 완료: B 엔딩 전 길목 차단 transition frame을 추가한다.
+11. 진행: Godot Web export 후 배포 링크로 리뷰한다.
 
 ## 11. Acceptance Criteria
 
@@ -222,6 +226,7 @@ B 엔딩의 v2.1 연출:
 - `blood_trace`, `human_panel`, `light_switch`가 클릭 가능한 단서/트리거로 작동한다.
 - 필요한 단서를 모두 얻은 뒤 붉은 STOP 뒤 공간에서 출구를 누르면 A 엔딩이다.
 - 단서가 부족한 상태에서 같은 출구를 누르면 B 엔딩이다.
+- B 엔딩 전 `blocked_passage` transition frame이 나온 뒤 크리처 추격 beat가 이어져야 한다.
 - A 엔딩은 판넬 클릭 없이도 가능해야 한다.
 - B 엔딩 방은 상호작용 없는 STOP 표지판 방이어야 한다.
 - debug overlay로 각 hotspot을 화면에서 확인할 수 있다.

@@ -23,6 +23,9 @@
   "event_targets": {
     "attempt_exit": ["true_exit_room", "false_exit_room"]
   },
+  "transition_images": {
+    "blocked_passage": "res://assets/images/bg_blocked_passage.png"
+  },
   "creature_beats": {
     "switch_shadow": {
       "delay": 0.06,

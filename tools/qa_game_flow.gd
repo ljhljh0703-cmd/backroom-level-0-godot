@@ -68,7 +68,9 @@ func _test_b_ending() -> void:
 	await _click_norm(0.10, 0.50)
 	await _click_norm(0.50, 0.10)
 	await _click_norm(0.50, 0.50)
-	await _wait_seconds(0.9)
+	await _wait_seconds(0.25)
+	_expect_state("transition", "B blocked passage transition")
+	await _wait_seconds(1.4)
 	_expect_ending("B", "B false exit")
 	_expect_room("false_exit_room", "B stop sign room")
 
@@ -112,3 +114,8 @@ func _expect_flag(flag_name: String, expected: bool, label: String) -> void:
 func _expect_ending(expected: String, label: String) -> void:
 	if game.game_state != "ending" or game.ending_id != expected:
 		failures.append("%s: expected ending %s, got state=%s ending=%s room=%s" % [label, expected, game.game_state, game.ending_id, game.room_id])
+
+
+func _expect_state(expected: String, label: String) -> void:
+	if game.game_state != expected:
+		failures.append("%s: expected state %s, got state=%s ending=%s room=%s" % [label, expected, game.game_state, game.ending_id, game.room_id])
