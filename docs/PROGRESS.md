@@ -23,13 +23,13 @@
 
 ## 현재 빌드
 
-- 플레이어블 소스 커밋: `4b8627a`
-- GitHub Pages 배포 커밋: `67e4111`
-- 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=4b8627a`
+- 플레이어블 소스 커밋: `8601740`
+- GitHub Pages 배포 커밋: `3386f43`
+- 배포 URL: `https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=8601740`
 - Godot: `4.6`
 - 배포 형식: GitHub Pages Web export, versioned `.pck`
-- 현재 단계: v2.1 blockout review
-- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` v2.1 결정 반영
+- 현재 단계: v2.2 blockout review
+- 최신 문서 단계: GDD v2 승인, `DEV_REQUIREMENTS.md` v2.2 결정 반영
 
 ## 결정 기록
 
@@ -154,7 +154,7 @@
 - `data/rooms.json`이 현재 방 그래프와 hotspot의 중심이다.
 - 이미지는 `tools/generate_assets.py`로 생성한다.
 - 현재 배경은 개발용 블록아웃 label을 좌상단에 포함한다.
-- 현재 배포 빌드는 GDD v2의 8방 구조와 v2.1 STOP 표지판 방/출구 조건 변경을 포함한다. 로컬 구현에는 v2.2 B 엔딩 전 길목 차단 frame이 추가되어 있다.
+- 현재 배포 빌드는 GDD v2의 8방 구조, v2.1 STOP 표지판 방/출구 조건 변경, v2.2 B 엔딩 전 길목 차단 frame을 포함한다.
 - 기존 `hallway`, `junction`, `sign`, `door`, `other` 자산은 남아 있지만 v2 route에서는 사용하지 않는다.
 - `docs/DEV_REQUIREMENTS.md`는 GDD v2를 실제 구현 단위로 바꾼 기준 문서다.
 - `data/rooms.json`이 현재 v2 방 그래프와 hotspot의 기준이다.
@@ -194,6 +194,8 @@ v2 블록아웃 리뷰 질문:
 | `2e43796` | v2 블록아웃 Web build 배포. |
 | `4b8627a` | v2.1 STOP 표지판 방, A 조건 완화, B 추격 beat, 강화된 핏자국 반영. |
 | `67e4111` | v2.1 cache-busted Web build 배포. |
+| `8601740` | B 엔딩 전 `blocked_passage` transition frame 구현. |
+| `3386f43` | v2.2 blocked passage Web build 배포. |
 | `183c17f` | 상세 배경을 버리고 구조 검토용 블록아웃으로 전환. |
 | `acedfef` | reference-style 배경 시도. 이후 블록아웃 결정으로 대체됨. |
 | `866c9f9` | STOP 표지 갈림길 피드백과 첫 크리처 등장 지연 반영. |
