@@ -97,17 +97,19 @@ flowchart TD
 
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
-| `stop_sign` | `(0.420, 0.155, 0.160, 0.280)` | event `stop_sign` | `STOP` |
-| `stop_back` | `(0.375, 0.010, 0.250, 0.135)` | target `stop_back_space` | `뒤쪽` |
+| `stop_sign` | `(0.420, 0.155, 0.160, 0.280)` | event `stop_sign`, hidden when `light_switch_pressed` | `STOP` |
+| `stop_back` | `(0.385, 0.070, 0.230, 0.430)` | target `stop_back_space` | `표지판 뒤` |
 | `left_path` | `(0.030, 0.235, 0.365, 0.655)` | target `left_blood_path` | `왼쪽 길` |
 | `right_path` | `(0.605, 0.235, 0.365, 0.655)` | target `right_panel_path` | `오른쪽 길` |
+
+`light_switch_pressed == true` 이후에는 `stop_sign` 설명 이벤트를 숨겨 중앙 STOP/공동 영역 클릭이 `stop_back_space` 진입으로 이어지게 한다.
 
 ### `stop_back_space`
 
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
 | `back_to_fork` | `(0.300, 0.835, 0.400, 0.130)` | target `fork_stop` | `돌아가기` |
-| `red_exit_gap` | `(0.365, 0.255, 0.270, 0.470)` | event `attempt_exit` | `나아가기` |
+| `red_exit_gap` | `(0.200, 0.120, 0.600, 0.650)` | event `attempt_exit` | `밝아진 공간` |
 
 `red_exit_gap`은 `light_switch_pressed == true`일 때만 활성화한다.
 

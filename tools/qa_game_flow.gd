@@ -95,7 +95,11 @@ func _test_a_ending() -> void:
 	await _click_norm(0.50, 0.43)
 	await _click_norm(0.50, 0.90)
 	await _click_norm(0.50, 0.90)
-	await _click_norm(0.50, 0.10)
+	if "stop_sign" in game._active_hotspot_ids():
+		failures.append("A route: stop_sign should not block the lit STOP area after switch")
+	if not "stop_back" in game._active_hotspot_ids():
+		failures.append("A route: stop_back hotspot should be active after switch")
+	await _click_norm(0.50, 0.32)
 	_expect_flag("stop_back_red_seen", true, "A red stop back seen")
 	_expect_flag("blood_trace_clicked", false, "A does not require blood trace")
 	await _click_norm(0.50, 0.50)

@@ -79,18 +79,20 @@
     "fork_stop": {
       "image": "res://assets/images/bg_fork_stop.png",
       "caption": "표지판 뒤가 비어 있다.",
+      "lit_caption": "표지판 뒤에서 빛이 새어 나온다.",
       "hotspots": [
         {
           "id": "stop_sign",
           "rect": [0.420, 0.155, 0.160, 0.280],
           "event": "stop_sign",
-          "prompt": "STOP"
+          "prompt": "STOP",
+          "hidden_when_flag": "light_switch_pressed"
         },
         {
           "id": "stop_back",
-          "rect": [0.375, 0.010, 0.250, 0.135],
+          "rect": [0.385, 0.070, 0.230, 0.430],
           "target": "stop_back_space",
-          "prompt": "뒤쪽"
+          "prompt": "표지판 뒤"
         },
         {
           "id": "left_path",
@@ -122,9 +124,9 @@
         },
         {
           "id": "red_exit_gap",
-          "rect": [0.365, 0.255, 0.270, 0.470],
+          "rect": [0.200, 0.120, 0.600, 0.650],
           "event": "attempt_exit",
-          "prompt": "나아가기",
+          "prompt": "밝아진 공간",
           "requires_flag": "light_switch_pressed"
         }
       ]

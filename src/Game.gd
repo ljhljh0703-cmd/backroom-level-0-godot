@@ -821,6 +821,8 @@ func _room_image_path(room: Dictionary) -> String:
 func _room_caption(room: Dictionary) -> String:
 	if room_id == ROOM_STOP_BACK and bool(flags.get("light_switch_pressed", false)):
 		return str(room.get("red_caption", room.get("caption", "")))
+	if room_id == ROOM_FORK and bool(flags.get("light_switch_pressed", false)):
+		return str(room.get("lit_caption", room.get("caption", "")))
 	if creature_stage >= 4 and room_id != ROOM_STOP_BACK:
 		return "이 방을 들킨 것 같다."
 	return str(room.get("caption", ""))
