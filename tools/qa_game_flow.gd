@@ -16,6 +16,8 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 
+	await _test_lobby_start()
+	await _test_ending_menu()
 	await _test_c_ending()
 	await _test_right_route_peek()
 	await _test_right_dead_end_door_block()
@@ -29,6 +31,46 @@ func _run() -> void:
 		for failure in failures:
 			push_error(failure)
 		quit(1)
+
+
+func _test_lobby_start() -> void:
+	_expect_state("lobby", "initial lobby")
+	if not game.menu_layer.visible:
+		failures.append("initial lobby: menu layer is hidden")
+	if game.menu_primary_button.text != "시작":
+		failures.append("initial lobby: expected primary button 시작, got %s" % game.menu_primary_button.text)
+	game._on_menu_primary_pressed()
+	await process_frame
+	_expect_state("play", "lobby start button")
+	_expect_room("fork_stop", "lobby start room")
+
+
+func _test_ending_menu() -> void:
+	game._reset_game()
+	await process_frame
+	game._show_ending("A")
+	await process_frame
+	_expect_ending("A", "A ending menu")
+	if not game.menu_layer.visible:
+		failures.append("A ending menu: menu layer is hidden")
+	if game.menu_primary_button.text != "재시작":
+		failures.append("A ending menu: expected primary button 재시작, got %s" % game.menu_primary_button.text)
+	if game.menu_secondary_button.text != "종료":
+		failures.append("A ending menu: expected secondary button 종료, got %s" % game.menu_secondary_button.text)
+	game._on_menu_primary_pressed()
+	await process_frame
+	_expect_state("lobby", "ending restart returns lobby")
+	game._on_menu_primary_pressed()
+	await process_frame
+	_expect_state("play", "restart lobby start")
+	_expect_room("fork_stop", "restart lobby room")
+	game._show_ending("B")
+	await process_frame
+	game._on_menu_secondary_pressed()
+	await process_frame
+	_expect_state("quit", "ending quit button")
+	if game.menu_primary_button.text != "처음으로":
+		failures.append("quit menu: expected primary button 처음으로, got %s" % game.menu_primary_button.text)
 
 
 func _test_c_ending() -> void:

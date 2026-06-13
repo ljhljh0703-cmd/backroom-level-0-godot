@@ -77,7 +77,7 @@ flowchart TD
 | `right_dead_end_seen` | `false` | `right_dead_end` 진입 | 복귀 시 판넬 소리 조건 |
 | `panel_sound_played` | `false` | `right_dead_end -> right_panel_path` 복귀 후 1회 | 우측 루트 위화감 |
 | `creature_peek_seen` | `false` | 우측 루트 후 `fork_stop` 복귀 시 1회 | STOP 뒤 크리처 1초 등장 제한 |
-| `ending_id` | `""` | 엔딩 진입 시 `A`, `B`, `C` | 결과 화면/재시작 |
+| `ending_id` | `""` | 엔딩 진입 시 `A`, `B`, `C` | 결과 화면/엔딩 버튼 |
 
 연속 재진입 판정:
 
@@ -141,7 +141,7 @@ flowchart TD
 
 ### Ending Rooms
 
-`true_exit_room`과 `false_exit_room`은 결과 표시 후 클릭하면 재시작한다. 추가 hotspot은 두지 않는다.
+`true_exit_room`과 `false_exit_room`은 결과 표시 후 엔딩 UI 버튼을 띄운다. `재시작`은 로비 화면으로 돌아가고, `종료`는 종료 상태 화면으로 전환한다. 추가 room hotspot은 두지 않는다.
 
 ## 6. Event Rules
 
@@ -231,6 +231,9 @@ B 엔딩의 v2.2 연출:
 - `right_dead_end`에서 오른쪽 문을 누르면 `blocked_passage` transition frame이 나온 뒤 B 엔딩으로 이어진다.
 - A 엔딩은 판넬 클릭 없이도 가능해야 한다.
 - B 엔딩 방은 상호작용 없는 STOP 표지판 방이어야 한다.
+- 게임 최초 진입은 로비 화면에서 시작하며 `시작` 버튼을 눌러 `fork_stop`에 들어간다.
+- 플레이 중 클릭 가능한 hotspot 위에 마우스를 올리면 손 모양 커서, hover badge, 약한 영역 하이라이트가 보여야 한다.
+- 엔딩 화면에는 `재시작`과 `종료` 버튼이 있어야 한다.
 - debug overlay로 각 hotspot을 화면에서 확인할 수 있다.
 - route validation에서 누락 target/image와 도달 불가능 방이 없어야 한다.
 - Godot headless QA에서 A/B/C 루트가 모두 통과해야 한다.

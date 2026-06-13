@@ -14,6 +14,7 @@ flowchart TD
     game --> assets["_load_assets()"]
     game --> input["_input()"]
     game --> frame["_process()"]
+    nodes --> menu["_build_menu_layer()"]
 
     assets --> render["_render_room()"]
     roomData --> render
@@ -21,11 +22,14 @@ flowchart TD
     click --> hotspot["_hotspot_at()"]
     hotspot --> goRoom["_go_to_room()"]
     hotspot --> event["_handle_event()"]
+    input --> hover["_update_hover()"]
+    hover --> hoverUi["hover badge + cursor"]
 
     goRoom --> render
     goRoom --> peek["_show_stop_sign_creature_peek()"]
     event --> caption["_flash_caption()"]
     event --> ending["_show_ending()"]
+    ending --> menu
 
     requirements["docs/DEV_REQUIREMENTS.md"] --> roomData
     roomData --> validation["tools/validate_routes.py"]
@@ -65,6 +69,8 @@ flowchart TD
 | 방 캡션 변경 | `data/rooms.json`의 `caption`/`red_caption` | 동적 캡션은 `_room_caption()` |
 | 조사 문구 변경 | `_handle_event()`, `_repeat_event_line()` | `data/rooms.json`의 `event` id |
 | 방 이동 조건 변경 | `_go_to_room()` | `data/rooms.json`의 hotspot target |
+| 로비/엔딩 버튼 변경 | `_show_lobby()`, `_show_ending()`, `_show_menu()` | `tools/qa_game_flow.gd`의 lobby/ending menu QA |
+| 상호작용 hover 표시 변경 | `_update_hover()`, `_show_hover_feedback()` | cursor shape, hover badge, hover highlight |
 | 우측 복귀 크리처 등장 타이밍 변경 | `data/rooms.json`의 `creature_beats.right_return_peek` | `_show_stop_sign_creature_peek()` |
 | 이후 크리처 접근감 변경 | `data/rooms.json`의 `creature_beats` | `_show_creature_beat()`와 엔딩 연출 |
 | B 엔딩 전 길목 차단 frame 변경 | `data/rooms.json`의 `transition_images.blocked_passage`, `tools/generate_assets.py`의 `scene_blocked_passage()` | `_show_blocked_passage_transition()` |
@@ -129,7 +135,7 @@ flowchart TD
 | 상태 | 변수 | 의미 |
 | --- | --- | --- |
 | 현재 방 | `room_id` | `data/rooms.json`의 room key. |
-| 게임 모드 | `game_state` | 현재는 `play`, `transition`, `ending`. |
+| 게임 모드 | `game_state` | 현재는 `lobby`, `play`, `transition`, `ending`, `quit`. |
 | 진행 횟수 | `move_count` | 방 이동 횟수. 동적 캡션에 사용. |
 | 크리처 접근 단계 | `creature_stage` | 크리처 표시/접근감 단계. 현재 자동 증가 대부분 비활성. |
 | STOP 등장 가드 | `creature_peek_seen`, `creature_peek_active` | STOP 표지 뒤 첫 등장 1회 제한. |
@@ -161,7 +167,7 @@ flowchart LR
 현재 고정 검증:
 
 - `tools/validate_routes.py`: 8개 방, 이미지, target, event, flag 검증.
-- `tools/qa_game_flow.gd`: C 연속 재진입, A 진짜 출구, B 가짜 출구 루트 검증.
+- `tools/qa_game_flow.gd`: 로비 시작, 엔딩 버튼, C 연속 재진입, A 진짜 출구, B 가짜 출구 루트 검증.
 - B 루트 QA는 `blocked_passage` transition 상태를 거친 뒤 `false_exit_room`으로 들어가는지 확인한다.
 - 우측 막다른 길 QA는 `right_dead_end`의 오른쪽 문 클릭이 `blocked_passage` transition을 거쳐 B 엔딩으로 이어지는지 확인한다.
 

@@ -42,6 +42,7 @@ var elapsed := 0.0
 var shake_time := 0.0
 var shake_power := 0.0
 var hover_prompt := ""
+var menu_mode := ""
 var debug_hotspots_visible := false
 var debug_viewport_size := Vector2.ZERO
 
@@ -58,6 +59,17 @@ var black_fade: ColorRect
 var caption_label: Label
 var prompt_label: Label
 var hold_label: Label
+var hover_highlight: ColorRect
+var hover_badge_bg: ColorRect
+var hover_badge_label: Label
+var menu_layer: Control
+var menu_scrim: ColorRect
+var menu_box: PanelContainer
+var menu_stack: VBoxContainer
+var menu_title: Label
+var menu_body: Label
+var menu_primary_button: Button
+var menu_secondary_button: Button
 var debug_layer: Control
 var hum_player: AudioStreamPlayer
 var sfx_player: AudioStreamPlayer
@@ -78,7 +90,7 @@ func _ready() -> void:
 	if REVIEW_HOLD_SCREEN:
 		_show_review_hold_screen()
 		return
-	_reset_game()
+	_show_lobby()
 	set_process(true)
 
 
@@ -166,6 +178,29 @@ func _build_nodes() -> void:
 	click_feedback.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(click_feedback)
 
+	hover_highlight = ColorRect.new()
+	hover_highlight.name = "HoverHighlight"
+	hover_highlight.color = Color(1.0, 0.86, 0.28, 0.0)
+	hover_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hover_highlight.visible = false
+	add_child(hover_highlight)
+
+	hover_badge_bg = ColorRect.new()
+	hover_badge_bg.name = "HoverBadgeBg"
+	hover_badge_bg.size = Vector2(132, 34)
+	hover_badge_bg.color = Color(0.02, 0.018, 0.012, 0.78)
+	hover_badge_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hover_badge_bg.visible = false
+	add_child(hover_badge_bg)
+
+	hover_badge_label = _make_label(16, Color(0.98, 0.90, 0.56), 2)
+	hover_badge_label.name = "HoverBadge"
+	hover_badge_label.size = hover_badge_bg.size
+	hover_badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hover_badge_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hover_badge_label.visible = false
+	add_child(hover_badge_label)
+
 	black_fade = ColorRect.new()
 	black_fade.name = "BlackFade"
 	black_fade.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -203,6 +238,8 @@ func _build_nodes() -> void:
 	hold_label.visible = false
 	add_child(hold_label)
 
+	_build_menu_layer()
+
 	debug_layer = Control.new()
 	debug_layer.name = "DebugHotspots"
 	debug_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -223,6 +260,130 @@ func _build_nodes() -> void:
 	sting_player.name = "Sting"
 	sting_player.volume_db = -3.0
 	add_child(sting_player)
+
+
+func _build_menu_layer() -> void:
+	menu_layer = Control.new()
+	menu_layer.name = "MenuLayer"
+	menu_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	menu_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	menu_layer.visible = false
+	add_child(menu_layer)
+
+	menu_scrim = ColorRect.new()
+	menu_scrim.name = "MenuScrim"
+	menu_scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	menu_scrim.color = Color(0.0, 0.0, 0.0, 0.54)
+	menu_scrim.mouse_filter = Control.MOUSE_FILTER_STOP
+	menu_layer.add_child(menu_scrim)
+
+	menu_box = PanelContainer.new()
+	menu_box.name = "MenuBox"
+	menu_box.add_theme_stylebox_override("panel", _panel_style())
+	menu_box.mouse_filter = Control.MOUSE_FILTER_STOP
+	menu_layer.add_child(menu_box)
+
+	menu_stack = VBoxContainer.new()
+	menu_stack.name = "MenuStack"
+	menu_stack.add_theme_constant_override("separation", 14)
+	menu_stack.set_anchors_preset(Control.PRESET_FULL_RECT)
+	menu_stack.offset_left = 24
+	menu_stack.offset_top = 22
+	menu_stack.offset_right = -24
+	menu_stack.offset_bottom = -22
+	menu_box.add_child(menu_stack)
+
+	menu_title = _make_label(30, Color(0.98, 0.91, 0.58), 3)
+	menu_title.name = "MenuTitle"
+	menu_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	menu_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	menu_title.custom_minimum_size = Vector2(0, 44)
+	menu_stack.add_child(menu_title)
+
+	menu_body = _make_label(19, Color(0.84, 0.78, 0.58), 2)
+	menu_body.name = "MenuBody"
+	menu_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	menu_body.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	menu_body.custom_minimum_size = Vector2(0, 58)
+	menu_stack.add_child(menu_body)
+
+	menu_primary_button = _make_menu_button("시작", true)
+	menu_primary_button.pressed.connect(_on_menu_primary_pressed)
+	menu_stack.add_child(menu_primary_button)
+
+	menu_secondary_button = _make_menu_button("종료", false)
+	menu_secondary_button.pressed.connect(_on_menu_secondary_pressed)
+	menu_stack.add_child(menu_secondary_button)
+
+	_layout_menu()
+
+
+func _panel_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.025, 0.022, 0.015, 0.88)
+	style.border_color = Color(0.75, 0.65, 0.36, 0.58)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	return style
+
+
+func _make_menu_button(text: String, primary: bool) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(0, 48)
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.add_theme_font_override("font", UI_FONT)
+	button.add_theme_font_size_override("font_size", 19)
+	button.add_theme_color_override("font_color", Color(0.98, 0.94, 0.72) if primary else Color(0.82, 0.78, 0.62))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 0.98, 0.82))
+	button.add_theme_color_override("font_pressed_color", Color(1.0, 0.86, 0.54))
+	button.add_theme_stylebox_override("normal", _button_style(primary, false))
+	button.add_theme_stylebox_override("hover", _button_style(primary, true))
+	button.add_theme_stylebox_override("pressed", _button_style(primary, true))
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	return button
+
+
+func _button_style(primary: bool, hover: bool) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.32, 0.10, 0.07, 0.86) if primary else Color(0.08, 0.075, 0.055, 0.82)
+	if hover:
+		style.bg_color = style.bg_color.lightened(0.15)
+	style.border_color = Color(0.94, 0.78, 0.38, 0.70 if hover else 0.42)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	return style
+
+
+func _layout_menu() -> void:
+	if menu_box == null:
+		return
+	var view := get_viewport_rect().size
+	var width := minf(430.0, maxf(288.0, view.x - 32.0))
+	var height := 268.0 if menu_secondary_button.visible else 206.0
+	height = minf(height, maxf(190.0, view.y - 32.0))
+	menu_box.anchor_left = 0.5
+	menu_box.anchor_right = 0.5
+	menu_box.anchor_top = 0.5
+	menu_box.anchor_bottom = 0.5
+	menu_box.offset_left = -width * 0.5
+	menu_box.offset_right = width * 0.5
+	menu_box.offset_top = -height * 0.5
+	menu_box.offset_bottom = height * 0.5
 
 
 func _make_label(font_size: int, color: Color, outline_size: int) -> Label:
@@ -277,8 +438,96 @@ func _show_review_hold_screen() -> void:
 	_publish_state("review_hold")
 
 
+func _show_lobby() -> void:
+	game_state = "lobby"
+	menu_mode = "lobby"
+	ending_id = ""
+	room_id = start_room
+	creature_stage = 0
+	creature_peek_active = false
+	move_count = 0
+	miss_clicks = 0
+	input_cooldown = 0.0
+	clicked_events.clear()
+	_reset_flags()
+	creature.visible = false
+	creature.scale = Vector2.ONE
+	creature.rotation_degrees = 0.0
+	foreground.visible = false
+	noise.visible = true
+	vignette.visible = true
+	threat_tint.color.a = 0.0
+	flash_rect.color.a = 0.0
+	black_fade.color = Color(0, 0, 0, 0)
+	caption_label.text = ""
+	prompt_label.text = ""
+	_hide_hover_feedback()
+	if room_data.has(room_id):
+		background.texture = load(_room_image_path(room_data[room_id]))
+	background.visible = true
+	if not hum_player.playing:
+		hum_player.play()
+	_show_menu("lobby", "NO EXIT", "나가는 길을 찾아라.", "시작", "종료")
+	_fade_from_black(0.45)
+	_publish_state("lobby")
+
+
+func _show_menu(mode: String, title: String, body: String, primary_text: String, secondary_text: String) -> void:
+	menu_mode = mode
+	menu_title.text = title
+	menu_body.text = body
+	menu_primary_button.text = primary_text
+	menu_secondary_button.text = secondary_text
+	menu_secondary_button.visible = secondary_text != ""
+	menu_layer.visible = true
+	_layout_menu()
+	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+	_hide_hover_feedback()
+
+
+func _hide_menu() -> void:
+	menu_mode = ""
+	if menu_layer != null:
+		menu_layer.visible = false
+
+
+func _on_menu_primary_pressed() -> void:
+	match menu_mode:
+		"lobby":
+			_reset_game()
+		"ending":
+			_show_lobby()
+		"quit":
+			_show_lobby()
+
+
+func _on_menu_secondary_pressed() -> void:
+	_quit_game()
+
+
+func _quit_game() -> void:
+	game_state = "quit"
+	ending_id = ""
+	room_id = ""
+	creature.visible = false
+	foreground.visible = false
+	noise.visible = false
+	vignette.visible = false
+	debug_layer.visible = false
+	caption_label.text = ""
+	prompt_label.text = ""
+	_hide_hover_feedback()
+	background.texture = null
+	black_fade.color = Color(0, 0, 0, 1)
+	if hum_player.playing:
+		hum_player.stop()
+	_show_menu("quit", "종료되었습니다.", "", "처음으로", "")
+	_publish_state("quit")
+
+
 func _reset_game() -> void:
 	game_state = "play"
+	menu_mode = ""
 	ending_id = ""
 	room_id = start_room
 	creature_stage = 0
@@ -294,6 +543,8 @@ func _reset_game() -> void:
 	threat_tint.color.a = 0.0
 	flash_rect.color.a = 0.0
 	prompt_label.text = ""
+	_hide_menu()
+	_hide_hover_feedback()
 	if not hum_player.playing:
 		hum_player.play()
 	_render_room()
@@ -335,18 +586,19 @@ func _process(delta: float) -> void:
 		world.position = Vector2.ZERO
 	if debug_hotspots_visible and debug_viewport_size != get_viewport_rect().size:
 		_render_debug_overlay()
+	if menu_layer != null and menu_layer.visible:
+		_layout_menu()
 
 
 func _handle_click(screen_pos: Vector2) -> void:
 	if game_state == "hold":
 		return
+	if game_state == "lobby" or game_state == "ending" or game_state == "quit":
+		return
 	if input_cooldown > 0.0:
 		return
 	input_cooldown = 0.10
 	_show_click_feedback(screen_pos)
-	if game_state == "ending":
-		_reset_game()
-		return
 	if game_state != "play":
 		return
 
@@ -605,15 +857,17 @@ func _show_ending(id: String) -> void:
 			room_id = ROOM_TRUE_EXIT
 			creature.visible = false
 			_render_room()
-			caption_label.text = "드디어. 돌아왔다."
-			prompt_label.text = "A 엔딩: 진짜 출구. 클릭하면 다시 시작."
+			caption_label.text = ""
+			prompt_label.text = ""
+			_show_menu("ending", "A 엔딩", "드디어. 돌아왔다.", "재시작", "종료")
 			_fade_from_black(0.65)
 		"B":
 			room_id = ROOM_FALSE_EXIT
 			creature.visible = false
 			_render_room()
 			caption_label.text = ""
-			prompt_label.text = "B 엔딩. 클릭하면 다시 시작."
+			prompt_label.text = ""
+			_show_menu("ending", "B 엔딩", "다시 시작점이다.", "재시작", "종료")
 			_fade_from_black(0.65)
 		"C":
 			ending_id = "C"
@@ -624,8 +878,9 @@ func _show_ending(id: String) -> void:
 			creature.size = Vector2(target_h * ratio, target_h)
 			creature.position = Vector2(view.x * 0.5 - creature.size.x * 0.5, view.y * 0.52 - creature.size.y * 0.5)
 			creature.modulate = Color(1.0, 0.86, 0.58, 0.96)
-			caption_label.text = "돌아보면 안 됐다."
-			prompt_label.text = "C 엔딩: 크리처에게 잡힘. 클릭하면 다시 시작."
+			caption_label.text = ""
+			prompt_label.text = ""
+			_show_menu("ending", "C 엔딩", "돌아보면 안 됐다.", "재시작", "종료")
 			_play_sting(sting_sound)
 			_shake(24.0, 0.72)
 			_flash_screen(Color(1.0, 0.05, 0.02, 0.42), 0.34)
@@ -756,13 +1011,52 @@ func _hotspot_rect(hotspot: Dictionary) -> Rect2:
 func _update_hover(screen_pos: Vector2) -> void:
 	if game_state != "play":
 		prompt_label.text = ""
+		_hide_hover_feedback()
 		return
 	var hotspot := _hotspot_at(screen_pos)
 	if hotspot.is_empty():
 		hover_prompt = ""
+		_hide_hover_feedback()
 	else:
 		hover_prompt = str(hotspot.get("prompt", ""))
+		_show_hover_feedback(screen_pos, hotspot, hover_prompt)
 	prompt_label.text = hover_prompt
+
+
+func _show_hover_feedback(screen_pos: Vector2, hotspot: Dictionary, prompt: String) -> void:
+	if prompt == "":
+		_hide_hover_feedback()
+		return
+	Input.set_default_cursor_shape(Input.CURSOR_POINTING_HAND)
+	var view := get_viewport_rect().size
+	var rect := _hotspot_rect(hotspot)
+	hover_highlight.position = Vector2(rect.position.x * view.x, rect.position.y * view.y)
+	hover_highlight.size = Vector2(rect.size.x * view.x, rect.size.y * view.y)
+	hover_highlight.color = Color(1.0, 0.86, 0.28, 0.12)
+	hover_highlight.visible = true
+
+	var badge_text := "클릭: %s" % prompt
+	hover_badge_label.text = badge_text
+	var badge_width := clampf(74.0 + float(badge_text.length()) * 11.0, 112.0, 190.0)
+	hover_badge_bg.size = Vector2(badge_width, 34)
+	hover_badge_label.size = hover_badge_bg.size
+	var badge_pos := screen_pos + Vector2(18, -46)
+	badge_pos.x = clampf(badge_pos.x, 12.0, maxf(12.0, view.x - badge_width - 12.0))
+	badge_pos.y = clampf(badge_pos.y, 12.0, maxf(12.0, view.y - hover_badge_bg.size.y - 12.0))
+	hover_badge_bg.position = badge_pos
+	hover_badge_label.position = badge_pos
+	hover_badge_bg.visible = true
+	hover_badge_label.visible = true
+
+
+func _hide_hover_feedback() -> void:
+	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+	if hover_highlight != null:
+		hover_highlight.visible = false
+	if hover_badge_bg != null:
+		hover_badge_bg.visible = false
+	if hover_badge_label != null:
+		hover_badge_label.visible = false
 
 
 func _normalized_position(screen_pos: Vector2) -> Vector2:
