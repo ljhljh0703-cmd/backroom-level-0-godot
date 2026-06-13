@@ -70,7 +70,6 @@
   "rooms": {
     "fork_stop": {
       "image": "res://assets/images/bg_fork_stop.png",
-      "foreground": "res://assets/images/fg_stop_sign.png",
       "caption": "표지판 뒤가 비어 있다.",
       "hotspots": [
         {

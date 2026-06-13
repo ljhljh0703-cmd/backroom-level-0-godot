@@ -9,7 +9,7 @@ const ROOM_RIGHT_DEAD_END := "right_dead_end"
 const ROOM_TRUE_EXIT := "true_exit_room"
 const ROOM_FALSE_EXIT := "false_exit_room"
 const DEV_LOGGING := false
-const REVIEW_HOLD_SCREEN := true
+const REVIEW_HOLD_SCREEN := false
 const REVIEW_ASSET_PATH := "res://assets/review/screen_fork_stop_candidate.png"
 const UI_FONT := preload("res://assets/fonts/NotoSansKR-Regular.ttf")
 

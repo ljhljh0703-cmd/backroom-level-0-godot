@@ -15,6 +15,7 @@ AUDIO = ROOT / "assets" / "audio"
 REVIEW = ROOT / "assets" / "review"
 SOURCE = ROOT / "assets" / "source"
 HUMAN_PANEL_CUTOUT = SOURCE / "human_panel_cutout.png"
+FORK_STOP_REFERENCE = SOURCE / "fork_stop_reference.png"
 W, H = 1280, 720
 
 # Current visual mode is a polished placeholder: positions stay readable, but
@@ -200,6 +201,9 @@ def stop_sign_shape(draw: ImageDraw.ImageDraw, cx: int, cy: int, radius: int, al
 
 
 def scene_fork_stop() -> Image.Image:
+    if FORK_STOP_REFERENCE.exists():
+        return Image.open(FORK_STOP_REFERENCE).convert("RGB").resize((W, H), Image.Resampling.LANCZOS)
+
     img, draw = blockout_room("BLOCKOUT: FORK_STOP")
     draw.rectangle((455, 45, 825, 230), fill=(0, 0, 0), outline=(76, 58, 40), width=3)
     draw.rectangle((472, 64, 808, 225), fill=(1, 1, 1))
