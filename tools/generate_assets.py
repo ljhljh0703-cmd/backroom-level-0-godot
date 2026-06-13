@@ -20,6 +20,7 @@ LEFT_BLOOD_PATH_REFERENCE = SOURCE / "left_blood_path_reference.png"
 LEFT_SWITCH_ROOM_REFERENCE = SOURCE / "left_switch_room_reference.png"
 RIGHT_PANEL_PATH_REFERENCE = SOURCE / "right_panel_path_reference.png"
 RIGHT_DEAD_END_REFERENCE = SOURCE / "right_dead_end_reference.png"
+TRUE_EXIT_ROOM_REFERENCE = SOURCE / "true_exit_room_reference.png"
 W, H = 1280, 720
 
 # Current visual mode is a polished placeholder: positions stay readable, but
@@ -430,6 +431,9 @@ def scene_right_dead_end() -> Image.Image:
 
 
 def scene_true_exit_room() -> Image.Image:
+    if TRUE_EXIT_ROOM_REFERENCE.exists():
+        return cover_reference(TRUE_EXIT_ROOM_REFERENCE)
+
     img, draw = blockout_room("BLOCKOUT: TRUE_EXIT_ROOM")
     draw.rectangle((455, 135, 825, 650), fill=(92, 86, 60), outline=(220, 205, 138), width=8)
     draw.rectangle((505, 190, 775, 635), fill=(198, 193, 150), outline=(240, 226, 158), width=5)
