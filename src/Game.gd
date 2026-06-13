@@ -10,6 +10,7 @@ const ROOM_TRUE_EXIT := "true_exit_room"
 const ROOM_FALSE_EXIT := "false_exit_room"
 const DEV_LOGGING := false
 const REVIEW_HOLD_SCREEN := true
+const REVIEW_ASSET_PATH := "res://assets/review/screen_fork_stop_candidate.png"
 const UI_FONT := preload("res://assets/fonts/NotoSansKR-Regular.ttf")
 
 const FLAG_DEFAULTS := {
@@ -256,19 +257,20 @@ func _load_assets() -> void:
 func _show_review_hold_screen() -> void:
 	game_state = "hold"
 	room_id = ""
-	background.texture = null
-	background.visible = false
+	background.texture = load(REVIEW_ASSET_PATH)
+	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	background.visible = true
 	creature.visible = false
 	foreground.visible = false
 	noise.visible = false
 	vignette.visible = false
 	threat_tint.color.a = 0.0
 	flash_rect.color.a = 0.0
-	black_fade.color = Color(0, 0, 0, 1)
-	caption_label.text = ""
-	prompt_label.text = ""
+	black_fade.color = Color(0, 0, 0, 0)
+	caption_label.text = "컨펌용 프리뷰 - 아직 게임에 미적용"
+	prompt_label.text = "화면 및 에셋 컨펌 대기 중"
 	debug_layer.visible = false
-	hold_label.text = "화면 및 에셋 컨펌 대기 중"
+	hold_label.text = ""
 	hold_label.visible = true
 	if hum_player.playing:
 		hum_player.stop()

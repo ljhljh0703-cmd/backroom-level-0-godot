@@ -12,6 +12,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 IMAGES = ROOT / "assets" / "images"
 AUDIO = ROOT / "assets" / "audio"
+REVIEW = ROOT / "assets" / "review"
 SOURCE = ROOT / "assets" / "source"
 HUMAN_PANEL_CUTOUT = SOURCE / "human_panel_cutout.png"
 W, H = 1280, 720
@@ -205,6 +206,92 @@ def scene_fork_stop() -> Image.Image:
     arrow_path(draw, "left", "LEFT")
     arrow_path(draw, "right", "RIGHT")
     red_trace(draw)
+    return img
+
+
+def draw_review_light(draw: ImageDraw.ImageDraw, points: list[tuple[int, int]]) -> None:
+    glow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    glow_draw = ImageDraw.Draw(glow)
+    for grow, alpha in [(22, 30), (12, 44), (5, 58)]:
+        expanded = [(x + (-grow if x < W // 2 else grow), y + (-grow if y < 200 else grow)) for x, y in points]
+        glow_draw.polygon(expanded, fill=(235, 226, 177, alpha))
+    draw.bitmap((0, 0), glow, fill=None)
+    draw.polygon(points, fill=(236, 234, 213), outline=(63, 62, 58))
+    draw.line(points + [points[0]], fill=(33, 33, 34), width=4)
+
+
+def scene_fork_stop_review_candidate() -> Image.Image:
+    img = Image.new("RGB", (W, H), (35, 30, 20))
+    draw = ImageDraw.Draw(img)
+    vp = (640, 338)
+
+    ceiling = [(0, 0), (1280, 0), (1104, 224), (842, 300), (438, 300), (176, 224)]
+    floor = [(0, 720), (1280, 720), (850, 448), (430, 448)]
+    left_wall = [(0, 0), (176, 224), (430, 448), (0, 720)]
+    right_wall = [(1280, 0), (1104, 224), (850, 448), (1280, 720)]
+    far_wall = [(438, 300), (842, 300), (850, 448), (430, 448)]
+
+    draw.polygon(ceiling, fill=(150, 138, 105))
+    draw.polygon(left_wall, fill=(124, 101, 56))
+    draw.polygon(right_wall, fill=(105, 85, 48))
+    draw.polygon(floor, fill=(78, 65, 41))
+    draw.polygon(far_wall, fill=(110, 89, 52))
+
+    for offset in [232, 382, 520, 676, 830, 982]:
+        draw.polygon([(offset - 42, 300), (offset + 34, 300), (offset + 18, 448), (offset - 62, 448)], fill=(126, 105, 61))
+    draw.polygon([(0, 0), (112, 0), (176, 224), (0, 320)], fill=(104, 83, 45))
+    draw.polygon([(1168, 0), (1280, 0), (1280, 340), (1104, 224)], fill=(86, 69, 40))
+
+    for x in range(-120, 1400, 80):
+        draw.line((x, 0, vp[0], vp[1]), fill=(114, 105, 83), width=2)
+    for y in range(34, 286, 34):
+        draw.line((0, y, 1280, y), fill=(118, 108, 82), width=2)
+    for x in range(-80, 1380, 95):
+        draw.line((x, 720, vp[0], 448), fill=(88, 76, 50), width=1)
+    for y in range(480, 720, 30):
+        draw.line((0, y, 1280, y), fill=(87, 75, 49), width=1)
+
+    draw_review_light(draw, [(574, -16), (706, -16), (730, 132), (550, 132)])
+    draw_review_light(draw, [(606, 212), (674, 212), (684, 250), (596, 250)])
+    draw_review_light(draw, [(620, 278), (660, 278), (666, 298), (614, 298)])
+    draw_review_light(draw, [(382, 228), (492, 250), (474, 282), (350, 256)])
+    draw_review_light(draw, [(892, 248), (1006, 224), (1032, 252), (906, 282)])
+
+    cavity_outer = [(482, 300), (798, 300), (836, 442), (444, 442)]
+    cavity_inner = [(526, 324), (754, 324), (778, 426), (502, 426)]
+    draw.polygon(cavity_outer, fill=(48, 40, 28), outline=(94, 76, 50))
+    draw.polygon([(482, 300), (526, 324), (502, 426), (444, 442)], fill=(34, 28, 21))
+    draw.polygon([(798, 300), (754, 324), (778, 426), (836, 442)], fill=(28, 23, 18))
+    draw.polygon(cavity_inner, fill=(0, 0, 0))
+
+    blood = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    blood_draw = ImageDraw.Draw(blood)
+    rng = random.Random(913)
+    trail = [(34, 672), (122, 650), (228, 648), (332, 623), (454, 600), (560, 604)]
+    blood_draw.line(trail, fill=(55, 0, 0, 215), width=42, joint="curve")
+    blood_draw.line(trail, fill=(124, 6, 5, 230), width=25, joint="curve")
+    for _ in range(36):
+        x = rng.randint(36, 560)
+        y = rng.randint(596, 704)
+        rx = rng.randint(5, 28)
+        ry = rng.randint(2, 12)
+        blood_draw.ellipse((x - rx, y - ry, x + rx, y + ry), fill=(98, 0, 0, rng.randint(110, 225)))
+    img = Image.alpha_composite(img.convert("RGBA"), blood.filter(ImageFilter.GaussianBlur(0.8))).convert("RGB")
+    draw = ImageDraw.Draw(img)
+
+    stop_sign_shape(draw, 640, 286, 80, (116, 20, 17))
+    draw.rectangle((632, 364, 648, 536), fill=(70, 61, 40))
+    draw.rectangle((598, 524, 682, 552), fill=(62, 52, 35))
+
+    vign = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    vign_draw = ImageDraw.Draw(vign)
+    for i in range(90):
+        alpha = int(i * 1.35)
+        vign_draw.rectangle((i, i, W - i, H - i), outline=(0, 0, 0, alpha), width=1)
+    img = Image.alpha_composite(img.convert("RGBA"), vign).convert("RGB")
+    img = add_grain(img, 91613, 12)
+    img = ImageEnhance.Contrast(img).enhance(1.08)
+    img = ImageEnhance.Color(img).enhance(0.84)
     return img
 
 
@@ -439,6 +526,7 @@ def make_audio() -> None:
 def main() -> None:
     IMAGES.mkdir(parents=True, exist_ok=True)
     AUDIO.mkdir(parents=True, exist_ok=True)
+    REVIEW.mkdir(parents=True, exist_ok=True)
     scenes = {
         "bg_fork_stop.png": scene_fork_stop(),
         "fg_stop_sign.png": stop_sign_foreground(),
@@ -457,6 +545,7 @@ def main() -> None:
     }
     for name, img in scenes.items():
         img.save(IMAGES / name)
+    scene_fork_stop_review_candidate().save(REVIEW / "screen_fork_stop_candidate.png")
     make_audio()
 
 
