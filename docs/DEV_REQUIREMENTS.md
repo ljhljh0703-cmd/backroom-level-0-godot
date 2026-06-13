@@ -95,7 +95,7 @@ flowchart TD
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
 | `stop_sign` | `(0.420, 0.155, 0.160, 0.280)` | event `stop_sign` | `STOP` |
-| `stop_back` | `(0.375, 0.010, 0.250, 0.250)` | target `stop_back_space` | `뒤쪽` |
+| `stop_back` | `(0.375, 0.010, 0.250, 0.135)` | target `stop_back_space` | `뒤쪽` |
 | `left_path` | `(0.030, 0.235, 0.365, 0.655)` | target `left_blood_path` | `왼쪽 길` |
 | `right_path` | `(0.605, 0.235, 0.365, 0.655)` | target `right_panel_path` | `오른쪽 길` |
 
@@ -103,7 +103,7 @@ flowchart TD
 
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
-| `back_to_fork` | `(0.000, 0.080, 0.260, 0.840)` | target `fork_stop` | `돌아가기` |
+| `back_to_fork` | `(0.300, 0.835, 0.400, 0.130)` | target `fork_stop` | `돌아가기` |
 | `red_exit_gap` | `(0.365, 0.255, 0.270, 0.470)` | event `attempt_exit` | `빛` |
 
 `red_exit_gap`은 `light_switch_pressed == true`일 때만 활성화한다.
@@ -114,14 +114,14 @@ flowchart TD
 | --- | --- | --- | --- |
 | `blood_trace` | `(0.210, 0.595, 0.560, 0.190)` | event `blood_trace` | `흔적` |
 | `forward_switch` | `(0.300, 0.480, 0.200, 0.115)` | target `left_switch_room` | `더 안쪽` |
-| `back_to_fork` | `(0.020, 0.150, 0.230, 0.720)` | target `fork_stop` | `돌아가기` |
+| `back_to_fork` | `(0.300, 0.835, 0.400, 0.130)` | target `fork_stop` | `돌아가기` |
 
 ### `left_switch_room`
 
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
 | `light_switch` | `(0.430, 0.325, 0.170, 0.230)` | event `light_switch` | `버튼` |
-| `back_left_path` | `(0.015, 0.130, 0.250, 0.760)` | target `left_blood_path` | `돌아가기` |
+| `back_left_path` | `(0.300, 0.835, 0.400, 0.130)` | target `left_blood_path` | `돌아가기` |
 
 ### `right_panel_path`
 
@@ -129,14 +129,14 @@ flowchart TD
 | --- | --- | --- | --- |
 | `human_panel` | `(0.405, 0.205, 0.220, 0.520)` | event `human_panel` | `판넬` |
 | `forward_dead_end` | `(0.660, 0.180, 0.300, 0.680)` | target `right_dead_end` | `앞으로` |
-| `back_to_fork` | `(0.010, 0.130, 0.250, 0.760)` | target `fork_stop` | `돌아가기` |
+| `back_to_fork` | `(0.300, 0.835, 0.360, 0.130)` | target `fork_stop` | `돌아가기` |
 
 ### `right_dead_end`
 
 | ID | Rect | Action | Prompt |
 | --- | --- | --- | --- |
 | `dead_wall` | `(0.335, 0.210, 0.330, 0.500)` | event `dead_wall` | `벽` |
-| `back_panel_path` | `(0.000, 0.100, 0.300, 0.800)` | target `right_panel_path` | `돌아가기` |
+| `back_panel_path` | `(0.300, 0.835, 0.400, 0.130)` | target `right_panel_path` | `돌아가기` |
 | `blocked_right_door` | `(0.780, 0.160, 0.200, 0.700)` | event `blocked_passage` | `문` |
 
 ### Ending Rooms
