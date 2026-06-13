@@ -326,7 +326,7 @@ func _handle_click(screen_pos: Vector2) -> void:
 func _miss_click() -> void:
 	miss_clicks += 1
 	if miss_clicks % 3 == 0:
-		_flash_caption("어둠은 대답하지 않는다.")
+		_flash_caption("아무것도 없는 것 같다.")
 	else:
 		_flash_caption("아무것도 움직이지 않는다.")
 
@@ -469,7 +469,7 @@ func _handle_event(event_name: String) -> void:
 		"blood_trace":
 			flags["blood_trace_clicked"] = true
 			_dev_log("event=blood_trace flags=%s" % _debug_flag_summary())
-			_flash_caption("끌린 자국은 왼쪽에서 끊겼다.")
+			_flash_caption("자국은 왼쪽에서 끊겨있다.")
 			_flash_screen(Color(0.82, 0.08, 0.04, 0.18), 0.16)
 		"light_switch":
 			flags["light_switch_pressed"] = true
@@ -483,10 +483,10 @@ func _handle_event(event_name: String) -> void:
 		"human_panel":
 			flags["panel_clue_clicked"] = true
 			_dev_log("event=human_panel flags=%s" % _debug_flag_summary())
-			_flash_caption("사람 모양인데, 너무 평평하다.")
+			_flash_caption("이런 곳에 어째서?")
 			_flash_screen(Color(1.0, 0.92, 0.58, 0.10), 0.12)
 		"dead_wall":
-			_flash_caption("여긴 막혀 있다.")
+			_flash_caption("길이 끊겼다.")
 		_:
 			_flash_caption("아무것도 변하지 않는다.")
 
@@ -500,7 +500,7 @@ func _repeat_event_line(event_name: String) -> String:
 		"light_switch":
 			return "버튼은 이미 눌려 있다."
 		"human_panel":
-			return "표면은 움직이지 않는다."
+			return "단순한 판넬인 것 같다."
 		"dead_wall":
 			return "막힌 벽이다."
 	return "아무것도 변하지 않는다."
@@ -559,7 +559,7 @@ func _show_ending(id: String) -> void:
 			room_id = ROOM_TRUE_EXIT
 			creature.visible = false
 			_render_room()
-			caption_label.text = "문 밖은 더 이상 노랗지 않았다."
+			caption_label.text = "드디어. 돌아왔다."
 			prompt_label.text = "A 엔딩: 진짜 출구. 클릭하면 다시 시작."
 			_fade_from_black(0.65)
 		"B":

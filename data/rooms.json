@@ -105,7 +105,7 @@
         "red": "res://assets/images/bg_stop_back_red.png"
       },
       "caption": "아무것도 보이지 않는다.",
-      "red_caption": "어둠이 붉게 젖어 있다.",
+      "red_caption": "불길하다.",
       "hotspots": [
         {
           "id": "back_to_fork",
@@ -124,7 +124,7 @@
     },
     "left_blood_path": {
       "image": "res://assets/images/bg_left_blood_path.png",
-      "caption": "붉은 자국이 왼쪽으로 끌려 있다.",
+      "caption": "핏자국 같은 게 왼쪽으로 나있다.",
       "hotspots": [
         {
           "id": "blood_trace",
@@ -166,7 +166,7 @@
     },
     "right_panel_path": {
       "image": "res://assets/images/bg_right_panel_path.png",
-      "caption": "이쪽 바닥은 너무 깨끗하다.",
+      "caption": "어째선지 이쪽 바닥은 너무 깨끗하다.",
       "hotspots": [
         {
           "id": "human_panel",
@@ -190,7 +190,7 @@
     },
     "right_dead_end": {
       "image": "res://assets/images/bg_right_dead_end.png",
-      "caption": "여긴 막혀 있다.",
+      "caption": "길이 끊겼다.",
       "hotspots": [
         {
           "id": "dead_wall",
@@ -208,7 +208,7 @@
     },
     "true_exit_room": {
       "image": "res://assets/images/bg_true_exit_room.png",
-      "caption": "문 밖은 더 이상 노랗지 않았다.",
+      "caption": "나갈 수 있을 것 같다.",
       "hotspots": []
     },
     "false_exit_room": {
