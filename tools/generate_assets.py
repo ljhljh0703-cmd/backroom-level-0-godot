@@ -161,29 +161,134 @@ def paste_human_panel(img: Image.Image, box: tuple[int, int, int, int]) -> Image
     return canvas.convert("RGB")
 
 
+def draw_lit_left_corridor(draw: ImageDraw.ImageDraw) -> None:
+    outer = [(0, 306), (418, 276), (530, 470), (0, 718)]
+    vanishing = (288, 424)
+    far_wall = [(220, 372), (352, 366), (354, 486), (218, 496)]
+
+    draw.polygon(outer, fill=(104, 92, 55), outline=(55, 44, 28))
+    draw.polygon([(0, 306), (418, 276), (352, 366), (220, 372)], fill=(154, 146, 112))
+    draw.polygon([(0, 306), (220, 372), (218, 496), (0, 718)], fill=(126, 108, 62))
+    draw.polygon([(418, 276), (352, 366), (354, 486), (530, 470)], fill=(108, 91, 53))
+    draw.polygon([(0, 718), (218, 496), (354, 486), (530, 470)], fill=(82, 73, 47))
+    draw.polygon(far_wall, fill=(106, 88, 52), outline=(83, 68, 42))
+
+    draw.polygon([(0, 306), (128, 338), (112, 718), (0, 718)], fill=(92, 76, 43))
+    draw.polygon([(352, 366), (408, 348), (456, 470), (354, 486)], fill=(88, 73, 43))
+    draw.polygon([(160, 362), (220, 372), (218, 496), (148, 574)], fill=(145, 123, 72))
+    draw.polygon([(286, 370), (352, 366), (354, 486), (286, 492)], fill=(121, 101, 59))
+    draw.rectangle((262, 452, 308, 468), fill=(72, 61, 40), outline=(58, 50, 35), width=2)
+
+    for x in range(-10, 438, 44):
+        draw.line((x, 306, vanishing[0], 424), fill=(116, 108, 83), width=1)
+    for y in range(318, 366, 12):
+        draw.line((0, y, 418, y - 30), fill=(123, 114, 86), width=1)
+    for x in range(-30, 542, 54):
+        draw.line((x, 718, vanishing[0], 486), fill=(96, 86, 56), width=1)
+    for y in range(506, 714, 28):
+        draw.line((0, y, 530, y - 48), fill=(97, 87, 56), width=1)
+
+    for light in [
+        [(194, 304), (344, 292), (330, 318), (208, 330)],
+        [(236, 340), (326, 333), (316, 350), (244, 356)],
+        [(256, 365), (308, 361), (303, 372), (261, 376)],
+    ]:
+        draw.line(light + [light[0]], fill=(68, 66, 58), width=5)
+        draw.polygon(light, fill=(238, 236, 212), outline=(247, 245, 222))
+
+    draw.line(outer + [outer[0]], fill=(42, 33, 21), width=4)
+    draw.line([(220, 372), (218, 496), (0, 718)], fill=(70, 58, 35), width=3)
+    draw.line([(352, 366), (354, 486), (530, 470)], fill=(64, 52, 33), width=3)
+
+
+def draw_stop_back_cavity(draw: ImageDraw.ImageDraw) -> None:
+    outer = [(472, 226), (808, 226), (842, 456), (438, 456)]
+    inner = [(520, 254), (760, 254), (792, 434), (488, 434)]
+    draw.polygon(outer, fill=(54, 48, 34), outline=(118, 95, 62))
+    draw.polygon([(472, 226), (520, 254), (488, 434), (438, 456)], fill=(36, 31, 23))
+    draw.polygon([(808, 226), (760, 254), (792, 434), (842, 456)], fill=(24, 22, 18))
+    draw.polygon([(472, 226), (808, 226), (760, 254), (520, 254)], fill=(66, 59, 40))
+    draw.polygon([(488, 434), (792, 434), (842, 456), (438, 456)], fill=(17, 15, 13))
+    draw.polygon(inner, fill=(1, 1, 1), outline=(11, 9, 7))
+    draw.polygon([(548, 278), (732, 278), (762, 410), (518, 410)], fill=(0, 0, 0))
+    for inset, shade in [(16, (5, 4, 4)), (34, (0, 0, 0))]:
+        draw.polygon(
+            [
+                (520 + inset, 254 + inset),
+                (760 - inset, 254 + inset),
+                (792 - inset, 434 - inset),
+                (488 + inset, 434 - inset),
+            ],
+            outline=shade,
+        )
+
+
 def arrow_path(draw: ImageDraw.ImageDraw, side: str, label: str) -> None:
     if side == "left":
-        poly = [(60, 355), (330, 285), (445, 455), (0, 620)]
+        draw_lit_left_corridor(draw)
+        return
     else:
         poly = [(950, 285), (1220, 355), (1280, 620), (835, 455)]
     draw.polygon(poly, fill=(7, 6, 5), outline=(94, 86, 58))
     draw.line(poly + [poly[0]], fill=(46, 40, 30), width=4)
 
 
-def red_trace(draw: ImageDraw.ImageDraw) -> None:
-    trail = [(70, 668), (150, 640), (245, 648), (335, 612), (448, 622)]
-    draw.line(trail, fill=(62, 4, 4), width=28, joint="curve")
-    draw.line(trail, fill=(154, 18, 14), width=17, joint="curve")
-    draw.line([(92, 695), (210, 675), (320, 685), (405, 660)], fill=(126, 12, 10), width=11, joint="curve")
-    for x, y, rx, ry in [
-        (105, 650, 30, 12),
-        (188, 632, 22, 8),
-        (274, 648, 38, 13),
-        (366, 616, 28, 10),
-        (426, 634, 18, 7),
-        (238, 690, 20, 8),
+def red_trace(img: Image.Image) -> Image.Image:
+    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    blood = ImageDraw.Draw(overlay)
+    rng = random.Random(1417)
+    trail = [(42, 694), (118, 675), (196, 666), (267, 646), (340, 621), (450, 614)]
+
+    def blob(cx: int, cy: int, rx: int, ry: int, color: tuple[int, int, int, int], points: int = 16) -> None:
+        vertices = []
+        for index in range(points):
+            angle = math.tau * index / points
+            wobble = rng.uniform(0.58, 1.18)
+            vertices.append((cx + int(math.cos(angle) * rx * wobble), cy + int(math.sin(angle) * ry * wobble)))
+        blood.polygon(vertices, fill=color)
+
+    blood.line(trail, fill=(35, 0, 0, 220), width=48, joint="curve")
+    blood.line(trail, fill=(105, 4, 5, 235), width=32, joint="curve")
+    blood.line([(74, 704), (148, 690), (229, 702), (318, 674), (410, 652)], fill=(55, 0, 0, 225), width=18, joint="curve")
+
+    blood.line([(58, 704), (153, 680), (246, 676), (346, 633), (447, 624)], fill=(30, 0, 0, 230), width=8, joint="curve")
+    blood.line([(88, 678), (183, 660), (270, 654), (342, 626)], fill=(154, 16, 12, 145), width=7, joint="curve")
+
+    for x, y, rx, ry, alpha in [
+        (94, 678, 48, 20, 235),
+        (176, 659, 34, 12, 225),
+        (268, 651, 56, 21, 235),
+        (361, 619, 46, 15, 225),
+        (432, 630, 32, 10, 220),
+        (226, 704, 34, 11, 210),
+        (438, 620, 58, 18, 228),
     ]:
-        draw.ellipse((x - rx, y - ry, x + rx, y + ry), fill=(112, 9, 8))
+        blob(x, y, rx, ry, (72, 0, 0, alpha), 18)
+        blob(x + rng.randint(-7, 7), y + rng.randint(-4, 4), max(7, rx // 2), max(3, ry // 2), (126, 7, 7, min(214, alpha)), 12)
+
+    for _ in range(14):
+        x = rng.randint(70, 430)
+        y = rng.randint(622, 702)
+        length = rng.randint(28, 96)
+        blood.line((x, y, max(0, x - length), y + rng.randint(5, 24)), fill=(44, 0, 0, rng.randint(110, 185)), width=rng.randint(2, 5))
+
+    for _ in range(85):
+        x = rng.randint(60, 430)
+        y = rng.randint(616, 714)
+        if rng.random() < 0.45 and x > 260:
+            y -= rng.randint(8, 34)
+        r = rng.randint(2, 8)
+        alpha = rng.randint(110, 220)
+        blood.ellipse((x - r, y - r // 2, x + r, y + r // 2), fill=(105, 0, 0, alpha))
+
+    blurred = overlay.filter(ImageFilter.GaussianBlur(1.2))
+    sharp = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    sharp_draw = ImageDraw.Draw(sharp)
+    sharp_draw.line([(54, 696), (150, 675), (236, 676), (336, 635), (448, 625)], fill=(45, 0, 0, 230), width=6, joint="curve")
+    sharp_draw.line([(88, 708), (192, 688), (308, 698), (404, 662)], fill=(38, 0, 0, 210), width=4, joint="curve")
+    combined = Image.alpha_composite(img.convert("RGBA"), blurred)
+    combined = Image.alpha_composite(combined, sharp)
+    return combined.convert("RGB")
 
 
 def stop_sign_shape(draw: ImageDraw.ImageDraw, cx: int, cy: int, radius: int, alpha_fill: tuple[int, int, int] = (113, 19, 17)) -> None:
@@ -200,11 +305,10 @@ def stop_sign_shape(draw: ImageDraw.ImageDraw, cx: int, cy: int, radius: int, al
 
 def scene_fork_stop() -> Image.Image:
     img, draw = blockout_room("BLOCKOUT: FORK_STOP")
-    draw.rectangle((455, 45, 825, 230), fill=(0, 0, 0), outline=(76, 58, 40), width=3)
-    draw.rectangle((472, 64, 808, 225), fill=(1, 1, 1))
+    draw_stop_back_cavity(draw)
     arrow_path(draw, "left", "LEFT")
     arrow_path(draw, "right", "RIGHT")
-    red_trace(draw)
+    img = red_trace(img)
     return img
 
 
