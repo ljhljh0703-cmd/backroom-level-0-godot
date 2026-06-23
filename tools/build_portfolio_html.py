@@ -93,9 +93,9 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BackRoom Level 0 - Godot Portfolio Case Study</title>
-  <meta name="description" content="2분 내외 포인트앤클릭 백룸 호러 프로토타입의 기획, 구현, 품질 검증(QA), GitHub Pages 배포 기록.">
+  <meta name="description" content="2분 내외 포인트앤클릭 백룸 호러를 기획부터 배포까지 닫은 제작 기록. 방 그래프, 엔딩 검증, GitHub Pages 배포 포함.">
   <meta property="og:title" content="BackRoom Level 0 - Godot Portfolio Case Study">
-  <meta property="og:description" content="짧은 클릭/터치 백룸 호러 프로토타입의 기획, 구현, 검증, 배포 기록.">
+  <meta property="og:description" content="짧은 백룸 클릭 게임을 구조부터 검증, 배포까지 닫은 제작 기록.">
   <meta property="og:type" content="website">
   <style>
     :root {{
@@ -375,9 +375,9 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
 <body>
   <header class="hero" id="top">
     <div class="shell hero-inner">
-      <div class="kicker">Godot Web Prototype · Portfolio Case Study</div>
+      <div class="kicker">Godot Web Prototype · 제작 기록</div>
       <h1>BackRoom Level 0</h1>
-      <p class="lead">짧은 클릭/터치 호러 게임을 끝까지 닫은 기록이다. 갈림길, STOP 표지판, 세 갈래 엔딩을 데이터로 관리하고, Godot Web export와 GitHub Pages 배포까지 연결했다.</p>
+      <p class="lead">2분짜리 백룸 클릭 게임이다. 처음엔 이미지부터 만지다가 바로 꼬였다. 그래서 구조로 돌아갔다. 방 그래프, 클릭 판정, 엔딩 세 개, 웹 배포까지 먼저 닫았다.</p>
       <nav class="actions" aria-label="Primary links">
         <a class="button primary" href="./?v={version}">플레이하기</a>
         <a class="button" href="https://github.com/ljhljh0703-cmd/backroom-level-0-godot" target="_blank" rel="noopener">GitHub</a>
@@ -392,15 +392,15 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
         <div class="section-head">
           <div>
             <p class="eyebrow">Scope</p>
-            <h2>짧은 게임을 끝까지 닫았다.</h2>
+            <h2>크게 만들지 않았다. 끝까지 만들었다.</h2>
           </div>
-          <p class="section-copy">이 페이지는 결과 화면보다 제작 과정을 보여준다. 게임 디자인 문서(GDD), 방 그래프, 클릭 판정, A/B/C 엔딩 품질 검증(QA), Godot Web export, GitHub Pages 배포를 한 작업 단위로 묶었다.</p>
+          <p class="section-copy">목표는 큰 게임이 아니었다. 짧은 체험 하나를 끝까지 닫는 것. 기획부터 구현, 품질 검증(QA), 배포까지 끊기지 않게 묶었다. 게임 디자인 문서(GDD), 방 그래프, 클릭 판정, A/B/C 엔딩 검증도 같은 흐름에 뒀다.</p>
         </div>
         <div class="metrics">
-          <div class="metric"><b>8</b><span>8개 방. 좌측 단서, 우측 막다른 길, STOP 뒤 공간, 진짜 출구 방을 JSON 데이터로 관리한다.</span></div>
-          <div class="metric"><b>3</b><span>A 진짜 탈출, B 가짜 탈출 후 백룸, C 크리처 사망 엔딩.</span></div>
-          <div class="metric"><b>2분</b><span>2분 내외. 가벼운 클릭/터치 플레이 안에서 판단 불안을 만든다.</span></div>
-          <div class="metric"><b>QA</b><span>Godot headless 테스트로 A/B/C 대표 루트를 실제 클릭 좌표 기준으로 검증한다.</span></div>
+          <div class="metric"><b>8</b><span>STOP 뒤 공간, 왼쪽 단서, 오른쪽 막다른 길, 진짜 출구 방을 JSON으로 관리한다.</span></div>
+          <div class="metric"><b>3</b><span>A는 진짜 탈출. B는 탈출한 줄 알았는데 다시 백룸. C는 크리처 사망.</span></div>
+          <div class="metric"><b>2분</b><span>오래 붙드는 게임보다, 짧게 눌렀는데 찝찝하게 남는 쪽을 목표로 했다.</span></div>
+          <div class="metric"><b>QA</b><span>실제 클릭 좌표로 대표 루트를 돌린다. 통과하지 못하면 배포하지 않는다.</span></div>
         </div>
       </div>
     </section>
@@ -410,18 +410,18 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
         <div class="section-head">
           <div>
             <p class="eyebrow">Player Experience</p>
-            <h2>위험해 보이는 길에 이유를 둔다.</h2>
+            <h2>핏자국 쪽이 오히려 정답이다.</h2>
           </div>
-          <p class="section-copy">복잡한 조작 대신 선택 압박을 설계했다. 안전해 보이는 오른쪽은 막다른 길이고, 위험해 보이는 왼쪽은 전등 버튼으로 이어진다.</p>
+          <p class="section-copy">안전해 보이는 오른쪽은 막힌다. 찝찝한 왼쪽에 단서를 뒀다. 백룸답게 플레이어가 길보다 자기 판단을 의심하게 만드는 게 목표였다.</p>
         </div>
         <div class="frames">
           <figure class="frame">
             <img alt="STOP 표지판 갈림길" src="{assets['fork']}">
-            <figcaption>첫 갈림길. STOP 뒤 공간, 핏자국이 있는 왼쪽 길, 깨끗해 보이는 오른쪽 길을 한 화면에 둔다.</figcaption>
+            <figcaption>첫 갈림길. STOP 뒤 공간, 핏자국이 있는 왼쪽, 깨끗해 보이는 오른쪽이 한 화면에 들어온다.</figcaption>
           </figure>
           <figure class="frame tall">
             <img alt="핏자국을 따라 이어지는 왼쪽 길" src="{assets['left']}">
-            <figcaption>왼쪽 길. 위험 신호처럼 보이는 핏자국이 실제 진행 단서가 된다.</figcaption>
+            <figcaption>왼쪽 길. 위험해 보이지만 진행 단서는 이쪽에 있다.</figcaption>
           </figure>
         </div>
       </div>
@@ -432,16 +432,16 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
         <div class="section-head">
           <div>
             <p class="eyebrow">Route Logic</p>
-            <h2>엔딩은 상태로 갈린다.</h2>
+            <h2>감으로 분기하지 않는다.</h2>
           </div>
-          <p class="section-copy">방 이동은 `data/rooms.json`에 두고, 상태 판정은 `src/Game.gd`에서 처리한다. 루트를 바꿀 때는 데이터부터 수정하고, 회귀는 headless QA로 확인한다.</p>
+          <p class="section-copy">방 이동은 `data/rooms.json`, 상태 판정은 `src/Game.gd`에 뒀다. 문구나 이미지가 바뀌어도 루트 구조가 같이 흔들리지 않게 하기 위해서다. 루트를 고치면 먼저 데이터를 바꾸고, 그 다음 headless QA로 클릭 흐름을 돌린다.</p>
         </div>
         <div class="route" aria-label="A ending route">
-          <div class="node"><strong>왼쪽 길</strong><p>핏자국을 따라 전등 버튼 방으로 들어간다.</p></div>
-          <div class="node"><strong>스위치</strong><p>버튼을 누르면 STOP 뒤 공간의 상태가 바뀐다.</p></div>
-          <div class="node danger"><strong>STOP 뒤</strong><p>처음에는 어둡고, 스위치 이후 붉게 밝아진다.</p></div>
-          <div class="node"><strong>진짜 출구 방</strong><p>밝아진 공간을 누르면 문이 있는 방으로 이동한다.</p></div>
-          <div class="node"><strong>A 엔딩</strong><p>마지막으로 문을 클릭해야 탈출한다.</p></div>
+          <div class="node"><strong>왼쪽 길</strong><p>핏자국을 따라 전등 버튼 방으로 간다.</p></div>
+          <div class="node"><strong>스위치</strong><p>버튼을 누르면 STOP 뒤 공간이 바뀐다.</p></div>
+          <div class="node danger"><strong>STOP 뒤</strong><p>처음에는 어둡다. 스위치 이후 붉게 밝아진다.</p></div>
+          <div class="node"><strong>진짜 출구 방</strong><p>밝아진 공간을 누르면 문이 있는 방으로 간다.</p></div>
+          <div class="node"><strong>A 엔딩</strong><p>문을 눌러야 탈출한다.</p></div>
         </div>
       </div>
     </section>
@@ -450,8 +450,8 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
       <div class="shell split">
         <div>
           <p class="eyebrow">Ending Pressure</p>
-          <h2>B 엔딩은 오답 처벌보다 압박에 가깝다.</h2>
-          <p class="section-copy">오른쪽 막다른 길의 문은 첫 클릭에서 경고만 준다. 경고를 무시하고 다시 누르면 길목 차단 전환으로 이어진다. 실패 판정보다, 공간과 크리처 압박에 밀려 들어가는 경험을 목표로 했다.</p>
+          <h2>B 엔딩은 틀렸다고 때리는 루트가 아니다.</h2>
+          <p class="section-copy">오른쪽 문은 첫 클릭에서 바로 벌주지 않는다. 먼저 뒤쪽 소리로 경고한다. 그래도 다시 들어가면 길목이 막힌다. 플레이어가 오답을 찍었다기보다, 몰려서 가짜 출구를 택했다는 느낌이 필요했다.</p>
         </div>
         <figure class="frame">
           <img alt="길목이 차단되는 B 엔딩 전환 화면" src="{assets['blocked']}">
@@ -465,9 +465,9 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
         <div class="section-head">
           <div>
             <p class="eyebrow">Production System</p>
-            <h2>문서와 코드가 같은 방 그래프를 본다.</h2>
+            <h2>문서가 따로 놀면 바로 망한다.</h2>
           </div>
-          <p class="section-copy">기획 변경은 게임 디자인 문서(GDD), 개발 요구사항, CodeGraph, Progress에 남겼다. 실제 구현은 `data/rooms.json`과 headless QA가 따라가게 했다.</p>
+          <p class="section-copy">이 프로젝트는 피드백이 자주 바뀌었다. 이미지, 동선, 캡션, 엔딩 조건이 계속 움직였다. 그래서 기획 변경은 게임 디자인 문서(GDD), 개발 요구사항, CodeGraph, Progress에 남겼고, 구현은 `data/rooms.json`과 검증 스크립트가 따라가게 했다.</p>
         </div>
         <div class="split">
           <figure class="frame">
@@ -478,8 +478,8 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
             <h3>검증 루틴</h3>
             <ul>
               <li>`tools/validate_routes.py`로 방, 이동 대상(target), 이벤트(event), 상태 플래그(flag) 누락을 확인한다.</li>
-              <li>`tools/qa_game_flow.gd`로 로비, A/B/C 엔딩, 우측 경고 쪽지 흐름을 실제 클릭 좌표로 검증한다.</li>
-              <li>`tools/prepare_web_build.py`로 커밋 버전이 붙은 `.pck`를 만들어 GitHub Pages 캐시 문제를 줄인다.</li>
+              <li>`tools/qa_game_flow.gd`로 로비, A/B/C 엔딩, 우측 경고 쪽지 흐름을 클릭 좌표로 검증한다.</li>
+              <li>`tools/prepare_web_build.py`로 커밋 버전이 붙은 `.pck`를 만든다. GitHub Pages 캐시 문제를 줄이기 위해서다.</li>
               <li>배포 후 원격 `.pck` SHA-256을 로컬 빌드와 비교한다.</li>
             </ul>
           </div>
@@ -491,8 +491,8 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
       <div class="shell split">
         <div>
           <p class="eyebrow">Final Interaction</p>
-          <h2>출구는 마지막 클릭으로 닫는다.</h2>
-          <p class="section-copy">밝아진 공간을 눌러도 바로 엔딩이 뜨지 않는다. 먼저 진짜 출구 방으로 이동하고, 그 안의 문을 눌렀을 때 A 엔딩이 열린다.</p>
+          <h2>출구도 한 번 더 눌러야 열린다.</h2>
+          <p class="section-copy">스위치를 누르고 STOP 뒤 공간이 밝아져도 바로 끝나지 않는다. 먼저 진짜 출구 방으로 이동한다. 그리고 문을 눌렀을 때 A 엔딩이 열린다. 마지막 입력을 남겨둬야 플레이어가 탈출을 직접 한 느낌이 난다.</p>
         </div>
         <figure class="frame">
           <img alt="진짜 출구 방" src="{assets['exit']}">
@@ -506,18 +506,18 @@ system declaration: Single-file HTML, monochrome/yellow/red palette, system font
         <div class="section-head">
           <div>
             <p class="eyebrow">Deployment Registry</p>
-            <h2>한 Pages 배포에 HTML 두 개를 올렸다.</h2>
+            <h2>게임과 포트폴리오를 같은 배포에 묶었다.</h2>
           </div>
-          <p class="section-copy">`gh-pages` 루트에는 게임용 `index.html`과 포트폴리오용 `portfolio.html`이 함께 있다. 같은 저장소와 같은 Pages 배포를 쓰되, URL 경로를 분리해 충돌을 피했다.</p>
+          <p class="section-copy">`gh-pages` 루트에는 게임 `index.html`과 포트폴리오 `portfolio.html`이 같이 있다. 저장소와 Pages 배포는 하나다. URL만 나눴다. 그래서 게임 링크와 제작 기록 링크를 같이 줄 수 있다.</p>
         </div>
         <div class="registry">
           <a href="./?v={version}">
             <strong>index.html</strong>
-            <span>플레이 가능한 Godot Web export. 버전이 붙은 `.pck`로 브라우저 캐시를 분리한다.</span>
+            <span>Godot Web export로 바로 플레이한다. 버전이 붙은 `.pck`로 브라우저 캐시 문제를 줄였다.</span>
           </a>
           <a href="./portfolio.html?v={version}">
             <strong>portfolio.html</strong>
-            <span>기획, 구현, 검증, 배포 과정을 정리한 단일 HTML 파일 사례 기록.</span>
+            <span>기획, 구현, 검증, 배포 흐름을 한 HTML 파일에 담았다.</span>
           </a>
         </div>
       </div>
