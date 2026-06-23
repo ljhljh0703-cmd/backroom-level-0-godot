@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "kind": "github-pages-multi-html-registry",
+  "generated_at": "2026-06-23T14:47:20.358229+00:00",
+  "repository": "ljhljh0703-cmd/backroom-level-0-godot",
+  "pages_base_url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot",
+  "documents": {
+    "playable_game": {
+      "path": "index.html",
+      "url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=af2f3b5",
+      "role": "Godot Web export, playable prototype",
+      "source": "builds/web/index.html"
+    },
+    "portfolio_case_study": {
+      "path": "portfolio.html",
+      "url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot/portfolio.html?v=af2f3b5",
+      "role": "single-file HTML portfolio case study",
+      "source": "docs/backroom-portfolio.html"
+    }
+  }
+}

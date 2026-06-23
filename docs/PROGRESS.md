@@ -224,4 +224,5 @@ v2.3 폴리싱 리뷰 질문:
 | `acedfef` | reference-style 배경 시도. 이후 블록아웃 결정으로 대체됨. |
 | `866c9f9` | STOP 표지 갈림길 피드백과 첫 크리처 등장 지연 반영. |
 | `ba9a270` | 스위치 후 중앙 STOP/표지판 뒤 클릭이 `stop_back_space`로 진입하고, 밝아진 공간 클릭으로 A 엔딩에 도달하도록 핫스팟 판정 수정. |
-| `b3e306e` | 밝아진 공간 클릭은 `true_exit_room` 이동까지만 처리하고, `true_exit_room` 문 클릭 시 A 엔딩이 뜨도록 분리. |
+| `af2f3b5` | 밝아진 공간 클릭은 `true_exit_room` 이동까지만 처리하고, `true_exit_room` 문 클릭 시 A 엔딩이 뜨도록 분리. |
+| `portfolio-html` | Vault HTML publish 원칙을 반영해 BackRoom 포트폴리오 single-file HTML과 Pages 다중 HTML registry를 추가. |

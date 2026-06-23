@@ -25,6 +25,14 @@ python3 tools/prepare_web_build.py
 
 `prepare_web_build.py` creates a commit-suffixed `.pck` and updates `index.html` so GitHub Pages/browser caches cannot keep serving an older game pack.
 
+## Portfolio HTML
+
+```bash
+python3 tools/build_portfolio_html.py
+```
+
+The portfolio builder creates `docs/backroom-portfolio.html` as the source artifact and copies the same single-file HTML to `builds/web/portfolio.html` for GitHub Pages deployment. It also writes `backroom-pages-registry.json`, which tracks both deployed HTML entry points: `index.html` for the playable Godot export and `portfolio.html` for the case study.
+
 The current creature sprite is a placeholder. Replace `assets/images/creature.png` with a processed portrait-derived creature when the final source photo is available.
 
 ## Development Notes
