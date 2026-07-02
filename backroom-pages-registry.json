@@ -1,21 +1,33 @@
 {
-  "version": "1.0.0",
-  "kind": "github-pages-multi-html-registry",
-  "generated_at": "2026-06-23T15:31:31.229349+00:00",
-  "repository": "ljhljh0703-cmd/backroom-level-0-godot",
-  "pages_base_url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot",
-  "documents": {
-    "playable_game": {
-      "path": "index.html",
-      "url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot/?v=af2f3b5",
-      "role": "Godot Web export, playable prototype",
-      "source": "builds/web/index.html"
+  "project": "BackRoom Level 0",
+  "generated_at": "2026-07-02T10:52:20",
+  "base_url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot",
+  "deployed_game_version": "af2f3b5",
+  "pages": [
+    {
+      "id": "play",
+      "title": "Play BackRoom Level 0",
+      "url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot/",
+      "description": "Godot Web export entrypoint for the playable horror prototype.",
+      "evidence": [
+        "project.godot",
+        "export_presets.cfg",
+        "docs/PROGRESS.md"
+      ]
     },
-    "portfolio_case_study": {
-      "path": "portfolio.html",
-      "url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot/portfolio.html?v=af2f3b5",
-      "role": "portfolio record as one HTML file",
-      "source": "docs/backroom-portfolio.html"
+    {
+      "id": "portfolio",
+      "title": "BackRoom Level 0 Game Detail Page",
+      "url": "https://ljhljh0703-cmd.github.io/backroom-level-0-godot/portfolio.html",
+      "description": "Self-contained game detail page for a short Godot Web Backrooms horror game, with developer notes and QA evidence.",
+      "evidence": [
+        "tools/build_portfolio_html.py",
+        "data/rooms.json",
+        "tools/validate_routes.py",
+        "tools/qa_game_flow.gd",
+        "docs/CODEGRAPH.md",
+        "docs/PROGRESS.md"
+      ]
     }
-  }
+  ]
 }
